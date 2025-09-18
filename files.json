@@ -153,7 +153,7 @@
 	],
 	"2347779": // cs2 workshop
 	[
-		"regex:.+?\\.(vdf|kv3|txt|cfg|lst|db|jpg|png|gif|inf|gi|fgd|lua|json|js|html|dll|exe)",
+		"regex:.+?\\.(vdf|kv3|txt|cfg|lst|db|jpg|png|gif|inf|gi|fgd|lua|json|js|ts|html|dll|exe)",
 		"regex:.+?asset_info\\.bin",
 	],
 	"1422452": // deadlock windows
