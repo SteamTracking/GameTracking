@@ -23,7 +23,7 @@ ProcessDepot ()
 
 	while IFS= read -r -d '' file
 	do
-		if [[ "$(basename "$file" "$1")" = "steamclient" ]]
+		if [[ "$(basename "$file" "$1")" = "steamclient" ]] || [[ "$(basename "$file" "$1")" = "libcef" ]]
 		then
 			continue
 		fi
