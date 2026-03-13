@@ -1,0 +1,84 @@
+on:
+    workflow_call:
+        inputs:
+            folder:
+                required: true
+                type: string
+            branch:
+                required: false
+                type: string
+                default: 'public'
+jobs:
+    gametracking-setup:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+
+        - name: Checkout GameTracking
+          id: checkout-gametracking
+          uses: actions/checkout@v6
+          with:
+            fetch-depth: 1
+            repository: 'SteamTracking/GameTracking'
+
+        - name: Grab cache
+          id: cache
+          uses: actions/cache@v5
+          with:
+            path: |
+              ${{ github.workspace }}/tools/*
+              !${{ github.workspace }}/tools/build.sh
+            key: ${{ runner.os }}-tools-${{ steps.checkout-gametracking.outputs.commit }}
+        
+        - name: Checkout ${{ github.repository }}
+          uses: actions/checkout@v6
+          with:
+            fetch-depth: 1
+            path: ${{ inputs.folder }}
+
+        - name: Setup Go
+          if: steps.cache.outputs.cache-hit != 'true'
+          uses: actions/setup-go@v6
+          with:
+            go-version: 'stable'
+
+        - name: Setup .NET
+          if: steps.cache.outputs.cache-hit != 'true'
+          uses: actions/setup-dotnet@v5
+          with:
+            dotnet-version: '10.x'
+
+        - name: Build tools
+          if: steps.cache.outputs.cache-hit != 'true'
+          run: ./tools/build.sh
+
+        - name: Does package-lock.json exist
+          id: package-lock-json-exists
+          run: echo "exists=$(test -f ${{ github.workspace }}/${{ inputs.folder }}/package-lock.json && echo true || echo false)" >> $GITHUB_OUTPUT
+
+        - name: Setup Node.js
+          if: steps.package-lock-json-exists.outputs.exists == 'true'
+          uses: actions/setup-node@v6
+          with:
+            node-version: '22'
+            cache: 'npm'
+            cache-dependency-path: ${{ github.workspace }}/${{ inputs.folder }}/package-lock.json
+
+        - name: Install Node dependencies
+          if: steps.package-lock-json-exists.outputs.exists == 'true'
+          working-directory: ${{ github.workspace }}/${{ inputs.folder }}
+          run: npm ci
+
+        - name: Configure git user
+          run: |
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        - name: Execute
+          working-directory: ${{ github.workspace }}/${{ inputs.folder }}
+          run: ./update.sh
+          env:
+                STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+                STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+                STEAM_BRANCH: ${{ inputs.branch }}
