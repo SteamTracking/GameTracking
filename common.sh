@@ -3,11 +3,17 @@
 export LC_ALL=C
 
 ROOT_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
-VRF_PATH="$ROOT_DIR/tools/exe/Source2Viewer/Source2Viewer-CLI"
-PROTOBUF_DUMPER_PATH="$ROOT_DIR/tools/exe/ProtobufDumper/ProtobufDumper"
-DUMP_STRINGS_PATH="$ROOT_DIR/tools/exe/DumpStrings"
-STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/exe/SteamFileDownloader/SteamFileDownloader"
-FIX_ENCODING_PATH="$ROOT_DIR/tools/exe/FixEncoding"
+
+EXE_SUFFIX=""
+if [[ "$(uname -s)" == MINGW* ]] || [[ "$(uname -s)" == MSYS* ]]; then
+	EXE_SUFFIX=".exe"
+fi
+
+VRF_PATH="$ROOT_DIR/tools/exe/Source2Viewer/Source2Viewer-CLI${EXE_SUFFIX}"
+PROTOBUF_DUMPER_PATH="$ROOT_DIR/tools/exe/ProtobufDumper/ProtobufDumper${EXE_SUFFIX}"
+DUMP_STRINGS_PATH="$ROOT_DIR/tools/exe/DumpStrings${EXE_SUFFIX}"
+STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/exe/SteamFileDownloader/SteamFileDownloader${EXE_SUFFIX}"
+FIX_ENCODING_PATH="$ROOT_DIR/tools/exe/FixEncoding${EXE_SUFFIX}"
 DO_GIT=1
 
 if [[ $# -gt 0 ]]; then
