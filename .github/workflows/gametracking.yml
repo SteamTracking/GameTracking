@@ -8,6 +8,11 @@ on:
                 required: false
                 type: string
                 default: 'public'
+        secrets:
+            STEAM_USERNAME:
+                required: true
+            STEAM_PASSWORD:
+                required: true
 jobs:
     gametracking-setup:
         runs-on: ubuntu-latest
