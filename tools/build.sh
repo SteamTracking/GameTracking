@@ -20,6 +20,10 @@ dotnet publish --configuration Release -p:PublishSingleFile=true --runtime linux
 cd ../DumpStrings
 go build
 
+# Fix Encoding
+cd ../FixEncoding
+go build
+
 # Dumper
 cd ../DumpSource2
 git submodule update --init
