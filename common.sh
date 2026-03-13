@@ -6,7 +6,7 @@ ROOT_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
 VRF_PATH="$ROOT_DIR/tools/ValveResourceFormat/CLI/bin/Release/linux-x64/publish/Source2Viewer-CLI"
 PROTOBUF_DUMPER_PATH="$ROOT_DIR/tools/SteamKit/Resources/ProtobufDumper/ProtobufDumper/bin/Release/linux-x64/publish/ProtobufDumper"
 DUMP_STRINGS_PATH="$ROOT_DIR/tools/DumpStrings/DumpStrings"
-STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/SteamFileDownloader/bin/Release/linux-x64/publish/SteamFileDownloader"
+STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/SteamFileDownloader/bin/linux-x64/publish/SteamFileDownloader"
 DO_GIT=1
 
 if [[ $# -gt 0 ]]; then
