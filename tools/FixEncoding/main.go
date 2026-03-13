@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 
 	"golang.org/x/text/encoding"
@@ -19,13 +20,21 @@ func main() {
 
 	fileName := os.Args[1]
 
-	data, err := os.ReadFile(fileName)
+	f, err := os.Open(fileName)
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to open file")
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	var bom [4]byte
+	n, err := f.Read(bom[:])
+	if err != nil && err != io.EOF {
 		fmt.Fprintln(os.Stderr, "Unable to read file")
 		os.Exit(1)
 	}
 
-	if len(data) < 2 {
+	if n < 2 {
 		return
 	}
 
@@ -33,16 +42,16 @@ func main() {
 	var name string
 
 	switch {
-	case len(data) >= 4 && bytes.Equal(data[:4], []byte{0x00, 0x00, 0xFE, 0xFF}):
+	case n >= 4 && bytes.Equal(bom[:4], []byte{0x00, 0x00, 0xFE, 0xFF}):
 		enc = utf32.UTF32(utf32.BigEndian, utf32.UseBOM)
 		name = "UTF-32BE"
-	case len(data) >= 4 && bytes.Equal(data[:4], []byte{0xFF, 0xFE, 0x00, 0x00}):
+	case n >= 4 && bytes.Equal(bom[:4], []byte{0xFF, 0xFE, 0x00, 0x00}):
 		enc = utf32.UTF32(utf32.LittleEndian, utf32.UseBOM)
 		name = "UTF-32LE"
-	case bytes.Equal(data[:2], []byte{0xFE, 0xFF}):
+	case bytes.Equal(bom[:2], []byte{0xFE, 0xFF}):
 		enc = unicode.UTF16(unicode.BigEndian, unicode.UseBOM)
 		name = "UTF-16BE"
-	case bytes.Equal(data[:2], []byte{0xFF, 0xFE}):
+	case bytes.Equal(bom[:2], []byte{0xFF, 0xFE}):
 		enc = unicode.UTF16(unicode.LittleEndian, unicode.UseBOM)
 		name = "UTF-16LE"
 	// UTF-8 BOM (EF BB BF) is not handled
@@ -51,6 +60,17 @@ func main() {
 	}
 
 	fmt.Printf(" > %s - %s\n", name, fileName)
+
+	// Seek back to start and read the full file for conversion
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to seek file")
+		os.Exit(1)
+	}
+	data, err := io.ReadAll(f)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to read file")
+		os.Exit(1)
+	}
 
 	decoded, _, err := transform.Bytes(enc.NewDecoder(), data)
 	if err != nil {
