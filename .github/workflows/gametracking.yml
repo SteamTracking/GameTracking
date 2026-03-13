@@ -82,3 +82,8 @@ jobs:
                 STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
                 STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
                 STEAM_BRANCH: ${{ inputs.branch }}
+        
+        - name: Dispatch to ValveProtobufs
+          run: gh api repos/SteamTracking/Protobufs/dispatches -f event_type=sync
+          env:
+                GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
