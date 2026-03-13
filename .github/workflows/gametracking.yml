@@ -8,6 +8,10 @@ on:
                 required: false
                 type: string
                 default: 'public'
+            run-on-windows:
+                required: false
+                type: boolean
+                default: false
         secrets:
             STEAM_USERNAME:
                 required: true
@@ -15,7 +19,7 @@ on:
                 required: true
 jobs:
     gametracking-setup:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.run-on-windows && 'windows-latest' || 'ubuntu-latest' }}
         permissions:
             contents: write
         steps:
@@ -56,10 +60,12 @@ jobs:
 
         - name: Build tools
           if: steps.cache.outputs.cache-hit != 'true'
+          shell: bash
           run: ./tools/build.sh
 
         - name: Does package-lock.json exist
           id: package-lock-json-exists
+          shell: bash
           run: echo "exists=$(test -f ${{ github.workspace }}/${{ inputs.folder }}/package-lock.json && echo true || echo false)" >> $GITHUB_OUTPUT
 
         - name: Setup Node.js
@@ -82,6 +88,7 @@ jobs:
 
         - name: Execute
           working-directory: ${{ github.workspace }}/${{ inputs.folder }}
+          shell: bash
           run: ./update.sh
           env:
                 STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
