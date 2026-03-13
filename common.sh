@@ -150,7 +150,7 @@ CreateCommit ()
 		return
 	fi
 
-	git add --renormalize --all
+	git add --all
 
 	message="$1 | $(git diff --cached --numstat | wc -l) files | $(git diff --cached --name-status | sed '{:q;N;s/\n/, /g;t q}' | cut -c 1-1024)"
 
