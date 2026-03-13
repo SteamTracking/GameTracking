@@ -13,9 +13,13 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "Input file required")
-		os.Exit(1)
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "Usage: FixEncoding <file>")
+		return
+	}
+
+	if len(os.Args) > 2 {
+		fmt.Fprintln(os.Stderr, "Warning: only one file is supported, ignoring extra arguments")
 	}
 
 	fileName := os.Args[1]
