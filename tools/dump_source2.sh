@@ -1,29 +1,28 @@
 #!/bin/bash
 set -euo pipefail
 
-if [[ $# -lt 2 ]]; then
-	echo "$(basename "$0") <game folder name> <mod name>"
+if [[ $# -ne 1 ]]; then
+	echo "$(basename "$0") <mod name>"
 	exit 1
 fi
 
 TOOLS_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
 
 if [[ "$(uname -s)" == MINGW* ]] || [[ "$(uname -s)" == MSYS* ]]; then
-	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/Release/DumpSource2-$2.exe"
-	DUMP_DIR="$(realpath "../$1/DumpSource2/")"
+	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/Release/DumpSource2-$1.exe"
+	DUMP_DIR="$(realpath "DumpSource2/")"
 
-	cd "$(realpath "../$1/game/bin/win64/")" || exit 1
+	cd "$(realpath "game/bin/win64/")" || exit 1
 
 	set +e
 	timeout 2m "$DUMPER_PATH" "$DUMP_DIR"
-	exit $?
+	DUMPER_EXIT_CODE=$?
+	set -e
 else
-	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/DumpSource2-$2"
+	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/DumpSource2-$1"
 
-	cd "$TOOLS_DIR" || exit 1
-
-	CORE_DIR="$(realpath "../$1/game/bin/linuxsteamrt64/")"
-	DUMP_DIR="$(realpath "../$1/DumpSource2/")"
+	CORE_DIR="$(realpath "game/bin/linuxsteamrt64/")"
+	DUMP_DIR="$(realpath "DumpSource2/")"
 
 	cd "$CORE_DIR" || exit 1
 
@@ -39,6 +38,10 @@ else
 	set -e
 
 	mv libvideo.so.original libvideo.so
-
-	exit "$DUMPER_EXIT_CODE"
 fi
+
+if [[ $DUMPER_EXIT_CODE -ne 0 ]]; then
+	echo "::error title=DumpSource2-$1 failed::Exit code $DUMPER_EXIT_CODE"
+fi
+
+exit "$DUMPER_EXIT_CODE"
