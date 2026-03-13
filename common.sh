@@ -57,7 +57,7 @@ ProcessDepot ()
 				file_type="pe"
 				;;
 			*)
-				echo "Unknown file type $file_type"
+				echo "Unknown file type $1"
 				continue
 		esac
 
@@ -119,8 +119,8 @@ DeduplicateStringsFrom ()
 			fi
 		done
 
-		grep "${grep_args[@]}" "$target_file" > "$target_file.tmp" &&
-			mv "$target_file.tmp" "$target_file"
+		grep "${grep_args[@]}" "$target_file" > "$target_file.tmp" || true
+		mv "$target_file.tmp" "$target_file"
 	done <   <(find . -type f -name "*$suffix" -print0)
 }
 
