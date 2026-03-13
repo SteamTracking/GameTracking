@@ -92,7 +92,12 @@ DeduplicateStringsFrom ()
 
 	dedupe_files=()
 	for file in "$@"; do
-		dedupe_files+=("$(realpath "$file")")
+		resolved="$(realpath "$file")"
+		if [[ -f "$resolved" ]]; then
+			dedupe_files+=("$resolved")
+		else
+			echo "::warning::Dedupe file not found: $file"
+		fi
 	done
 
 	grep_args=(
