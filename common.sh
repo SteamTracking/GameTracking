@@ -150,8 +150,6 @@ CreateCommit ()
 	fi
 
 	git add -A
-	git commit -S -a -m "$message" || true
+	git commit -a -m "$message" || true
 	git push
-
-	[[ -f ~/ValveProtobufs/update.sh ]] && ~/ValveProtobufs/update.sh
 }
