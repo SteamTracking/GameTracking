@@ -24,11 +24,11 @@ dotnet publish --configuration Release -p:PublishSingleFile=true --self-containe
 
 # Strings
 cd ../DumpStrings
-go build -o ../exe/DumpStrings
+go build -buildvcs=false -o ../exe/DumpStrings
 
 # Fix Encoding
 cd ../FixEncoding
-go build -o ../exe/FixEncoding
+go build -buildvcs=false -o ../exe/FixEncoding
 
 # Dumper
 cd ../DumpSource2
