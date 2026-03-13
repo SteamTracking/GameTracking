@@ -11,7 +11,7 @@ if [[ -n "$EXE_SUFFIX" ]]; then
 fi
 
 # Update
-git submodule update --init --depth 1 --jobs 4
+git submodule update --init --recursive --depth 1 --jobs 4
 
 mkdir -p exe
 
@@ -39,7 +39,6 @@ go build -buildvcs=false -o "../exe/FixEncoding${EXE_SUFFIX}"
 
 # Dumper
 cd ../DumpSource2
-git submodule update --init --depth 1 --jobs 4
 #[[ -d build ]] && rm -r build
 mkdir -p build
 cmake -B build -S .
