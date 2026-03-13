@@ -4,7 +4,7 @@ set -euo pipefail
 cd "${0%/*}"
 
 # Update
-git submodule update --remote --merge --init
+git submodule update --init --depth 1 --jobs 4
 
 mkdir -p exe
 
@@ -32,7 +32,7 @@ go build -o ../exe/FixEncoding
 
 # Dumper
 cd ../DumpSource2
-git submodule update --init
+git submodule update --init --depth 1 --jobs 4
 #[[ -d build ]] && rm -r build
 mkdir build
 cd build
