@@ -150,14 +150,15 @@ CreateCommit ()
 		return
 	fi
 
-	message="$1 | $(git status --porcelain | wc -l) files | $(git status --porcelain | sed '{:q;N;s/\n/, /g;t q}' | sed 's/^ *//g' | cut -c 1-1024)"
+	git add --renormalize --all
+
+	message="$1 | $(git diff --cached --numstat | wc -l) files | $(git diff --cached --name-status | sed '{:q;N;s/\n/, /g;t q}' | cut -c 1-1024)"
 
 	if [[ -n "$2" ]]; then
 		bashpls=$'\n\n'
 		message="${message}${bashpls}https://steamdb.info/patchnotes/$2/"
 	fi
 
-	git add -A
-	git commit -a -m "$message" || true
+	git commit --message "$message" || true
 	git push
 }
