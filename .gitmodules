@@ -18,3 +18,7 @@
 	path = tools/DumpSource2
 	url = https://github.com/ValveResourceFormat/DumpSource2
 	shallow = true
+[submodule "tools/SteamFileDownloader"]
+	path = tools/SteamFileDownloader
+	url = https://github.com/SteamTracking/SteamFileDownloader.git
+	shallow = true

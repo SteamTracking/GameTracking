@@ -24,6 +24,10 @@ go build
 cd ../FixEncoding
 go build
 
+# SteamFileDownloader
+cd ../SteamFileDownloader
+dotnet publish --configuration Release -p:PublishSingleFile=true -p:DebugType=embedded --self-contained --runtime linux-x64 SteamFileDownloader.csproj
+
 # Dumper
 cd ../DumpSource2
 git submodule update --init
@@ -42,5 +46,6 @@ cd ../
 "$VRF_PATH" --version
 "$PROTOBUF_DUMPER_PATH" -v
 "$DUMP_STRINGS_PATH"
+"$STEAM_FILE_DOWNLOADER_PATH" --version
 
 echo "Done."
