@@ -3,10 +3,11 @@
 export LC_ALL=C
 
 ROOT_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
-VRF_PATH="$ROOT_DIR/tools/ValveResourceFormat/CLI/bin/Release/linux-x64/publish/Source2Viewer-CLI"
-PROTOBUF_DUMPER_PATH="$ROOT_DIR/tools/SteamKit/Resources/ProtobufDumper/ProtobufDumper/bin/Release/linux-x64/publish/ProtobufDumper"
-DUMP_STRINGS_PATH="$ROOT_DIR/tools/DumpStrings/DumpStrings"
-STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/SteamFileDownloader/bin/linux-x64/publish/SteamFileDownloader"
+VRF_PATH="$ROOT_DIR/tools/exe/Source2Viewer/Source2Viewer-CLI"
+PROTOBUF_DUMPER_PATH="$ROOT_DIR/tools/exe/ProtobufDumper/ProtobufDumper"
+DUMP_STRINGS_PATH="$ROOT_DIR/tools/exe/DumpStrings"
+STEAM_FILE_DOWNLOADER_PATH="$ROOT_DIR/tools/exe/SteamFileDownloader/SteamFileDownloader"
+FIX_ENCODING_PATH="$ROOT_DIR/tools/exe/FixEncoding"
 DO_GIT=1
 
 if [[ $# -gt 0 ]]; then
@@ -133,7 +134,7 @@ FixUCS2 ()
 {
 	echo "> Fixing UCS-2"
 
-	find . -type f -name "*.txt" -print0 | xargs --null --max-lines=1 --max-procs=3 "$ROOT_DIR/tools/FixEncoding/fix_encoding"
+	find . -type f -name "*.txt" -print0 | xargs --null --max-lines=1 --max-procs=3 "$FIX_ENCODING_PATH"
 }
 
 CreateCommit ()

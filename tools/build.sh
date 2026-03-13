@@ -6,32 +6,34 @@ cd "${0%/*}"
 # Update
 git submodule update --remote --merge --init
 
+mkdir -p exe
+
 # VRF
 cd ValveResourceFormat
 #dotnet clean --configuration Release CLI/CLI.csproj
-dotnet publish --configuration Release -p:PublishSingleFile=true --runtime linux-x64 --self-contained -p:DefineConstants=VRF_NO_GENERATOR_VERSION CLI/CLI.csproj
+dotnet publish --configuration Release -p:PublishSingleFile=true --self-contained --output ../exe/Source2Viewer/ --runtime linux-x64 -p:DefineConstants=VRF_NO_GENERATOR_VERSION CLI/CLI.csproj
+
+# SteamFileDownloader
+cd ../SteamFileDownloader
+dotnet publish --configuration Release -p:PublishSingleFile=true --self-contained --output ../exe/SteamFileDownloader/ --runtime linux-x64 SteamFileDownloader.csproj
 
 # ProtobufDumper
 cd ../SteamKit
 #dotnet clean --configuration Release Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
-dotnet publish --configuration Release -p:PublishSingleFile=true --runtime linux-x64 --self-contained Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
+dotnet publish --configuration Release -p:PublishSingleFile=true --self-contained --output ../exe/ProtobufDumper/ --runtime linux-x64 Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
 
 # Strings
 cd ../DumpStrings
-go build
+go build -o ../exe/DumpStrings
 
 # Fix Encoding
 cd ../FixEncoding
-go build
-
-# SteamFileDownloader
-cd ../SteamFileDownloader
-dotnet publish --configuration Release -p:PublishSingleFile=true -p:DebugType=embedded --self-contained --runtime linux-x64 SteamFileDownloader.csproj
+go build -o ../exe/FixEncoding
 
 # Dumper
 cd ../DumpSource2
 git submodule update --init
-[[ -d build ]] && rm -r build
+#[[ -d build ]] && rm -r build
 mkdir build
 cd build
 cmake ..

@@ -7,7 +7,7 @@ google/
 *.vpk
 *.vpk.manifest.txt
 *.tmp
-tools/FixEncoding/fix_encoding
+tools/exe/
 
 # Moved to own repo
 tf/
