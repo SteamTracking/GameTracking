@@ -42,10 +42,8 @@ cd ../DumpSource2
 git submodule update --init --depth 1 --jobs 4
 #[[ -d build ]] && rm -r build
 mkdir -p build
-cd build
-cmake ..
-cmake --build . --parallel 4
-cd ../
+cmake -B build -S .
+cmake --build build --parallel 4 --config Release
 
 # Verify
 echo Checking that the executables work
