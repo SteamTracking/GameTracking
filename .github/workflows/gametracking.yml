@@ -105,6 +105,7 @@ jobs:
           run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global core.safecrlf false
 
         - name: Get current commit SHA
           id: before
@@ -112,7 +113,7 @@ jobs:
           shell: bash
           run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-        - name: Delete non-whitelisted files
+        - name: Delete all folders for cleanup
           if: ${{ inputs.reset-gametracking }}
           working-directory: ${{ github.workspace }}/tracked_game
           shell: bash
