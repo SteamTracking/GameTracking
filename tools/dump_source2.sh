@@ -8,6 +8,8 @@ fi
 
 TOOLS_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
 
+echo "::group::DumpSource2-$1"
+
 if [[ "$(uname -s)" == MINGW* ]] || [[ "$(uname -s)" == MSYS* ]]; then
 	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/Release/DumpSource2-$1.exe"
 	DUMP_DIR="$(realpath "DumpSource2/")"
@@ -39,6 +41,8 @@ else
 
 	mv libvideo.so.original libvideo.so
 fi
+
+echo "::endgroup::"
 
 if [[ $DUMPER_EXIT_CODE -ne 0 ]]; then
 	echo "::error title=DumpSource2-$1 failed::Exit code $DUMPER_EXIT_CODE"
