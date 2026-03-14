@@ -1,9 +1,0 @@
-// NetworkVersion is the version in the wire protcol between client<->server,
-// its not used for matchmaking, PatchVersion is used for that to ensure
-// we don't get cross connecting to different releases.  Only bump this if
-// you know an incompatible change has happened to the network protocol in
-// game and old demos will not work.
-NetworkVersion=2.1.0.0
-PatchVersion=2.2.4.3
-ProductName=left4dead2
-appID=550

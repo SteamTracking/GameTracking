@@ -21,7 +21,3 @@ SteamFileDownloader is a lightweight depot downloader that downloads files norma
 - [`tools/build.sh`](/tools/build.sh) - builds the required tools (available as submodules). Requires .NET, Go, and CMake.
 
 Supports both Linux and Windows runners.
-
-### Legacy games
-
-Some older games (hl2, portal, l4d, etc.) still have their `update.sh` scripts directly in this repository.
