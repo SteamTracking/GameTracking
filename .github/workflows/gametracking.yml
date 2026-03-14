@@ -59,6 +59,7 @@ jobs:
           uses: actions/setup-go@v6
           with:
             go-version: 'stable'
+            cache-dependency-path: tools/*/go.sum
 
         - name: Setup .NET
           if: steps.cache.outputs.cache-hit != 'true'
