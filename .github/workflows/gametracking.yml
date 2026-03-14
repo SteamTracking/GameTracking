@@ -28,6 +28,7 @@ jobs:
         runs-on: ${{ inputs.run-on-windows && 'windows-latest' || 'ubuntu-latest' }}
         permissions:
             contents: write
+            statuses: write
         steps:
 
         # Checkout and cache
@@ -99,6 +100,12 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+        - name: Get current commit SHA
+          id: before
+          working-directory: ${{ github.workspace }}/tracked_game
+          shell: bash
+          run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
         - name: Download app ${{ inputs.appid }}
           working-directory: ${{ github.workspace }}/tracked_game
           shell: bash
@@ -112,6 +119,32 @@ jobs:
           run: ./update.sh
 
         # Post-processing
+
+        - name: Set commit status
+          if: always() && steps.before.outputs.sha
+          working-directory: ${{ github.workspace }}/tracked_game
+          shell: bash
+          run: |
+            NEW_SHA=$(git rev-parse HEAD)
+
+            if [[ "$NEW_SHA" == "${{ steps.before.outputs.sha }}" ]]; then
+              echo "No new commit was pushed, skipping status"
+              exit 0
+            fi
+
+            if [[ "${{ job.status }}" == "success" ]]; then
+              STATE="success"
+            else
+              STATE="failure"
+            fi
+
+            gh api "repos/${{ github.repository }}/statuses/$NEW_SHA" \
+              -f state="$STATE" \
+              -f target_url="$GITHUB_SERVER_URL/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description="GameTracking" \
+              -f context="GameTracking"
+          env:
+            GH_TOKEN: ${{ github.token }}
 
         - name: Dispatch sync to ValveProtobufs
           if: ${{ env.GH_TOKEN != '' }}
