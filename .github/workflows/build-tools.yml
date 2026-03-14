@@ -1,0 +1,66 @@
+name: Build Tools
+
+on:
+    push:
+        branches: [master]
+    workflow_dispatch:
+
+concurrency:
+    group: build-tools
+    cancel-in-progress: true
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+        - name: Create or update release
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            NOTES="Automated tools build from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d)"
+            gh release create tools --repo ${{ github.repository }} --title "Tools" --notes "$NOTES" --latest=false || \
+              gh release edit tools --repo ${{ github.repository }} --notes "$NOTES"
+
+    build:
+        needs: release
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      archive: tools-linux-x64.tar.gz
+                    - os: windows-latest
+                      archive: tools-win-x64.tar.gz
+
+        runs-on: ${{ matrix.os }}
+        permissions:
+            contents: write
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v6
+          with:
+            fetch-depth: 1
+
+        - name: Setup Go
+          uses: actions/setup-go@v6
+          with:
+            go-version: 'stable'
+
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v5
+          with:
+            dotnet-version: '10.x'
+
+        - name: Build tools
+          shell: bash
+          run: ./tools/build.sh
+
+        - name: Create archive
+          shell: bash
+          run: ./tools/archive.sh "${{ matrix.archive }}"
+
+        - name: Upload to release
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: gh release upload tools --repo ${{ github.repository }} --clobber tools/${{ matrix.archive }}
