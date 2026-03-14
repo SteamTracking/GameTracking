@@ -2,26 +2,25 @@
 
 Tracking things, so you don't have to.
 
-You will not be able to track games yourself by just cloning this repository,
-as the actual game file updating is done by the SteamDB backend. You may be able
-to replicate the functionality using steamcmd though.
+This repository contains shared tooling and scripts used by the individual game tracking repositories. Game updates are processed entirely via GitHub Actions using a [reusable workflow](/.github/workflows/gametracking.yml).
 
-### How files are tracked
+### How it works
 
-- [`files.json`](/files.json) is a mapping of depot ids and which files to download from them.
-- [`depots_mapping.json`](/depots_mapping.json) specifies which folder each depot should download to.
-  - it must contain a mapping for the game appid itself.
-- [`common.sh`](/common.sh) provides common function used for dumping or decompiling files.
-- [`tools/build.sh`](/tools/build.sh) updates and builds the required tools which are available as submodules.
+Each game has its own repository (e.g. [GameTracking-Dota2](https://github.com/SteamTracking/GameTracking-Dota2), [GameTracking-CS2](https://github.com/SteamTracking/GameTracking-CS2)) which contains:
+- `files.json` - a mapping of depot ids and which files to download from them.
+- `update.sh` - the script that runs when the game is updated.
 
-Some folders (such as `dota`) are [ignored](/.gitignore) in this repository,
-and instead are tracked in [GameTracking-Dota2](https://github.com/SteamDatabase/GameTracking-Dota2) repository.
+When a game update is detected, the game repository's workflow calls the reusable workflow in this repository, which checks out both repos, builds the tools, downloads the relevant game files using [SteamFileDownloader](https://github.com/SteamTracking/SteamFileDownloader) based on the game's `files.json`, and runs the game's `update.sh`.
 
-All game folders contain a `update.sh` file which is run when the game is updated.
+SteamFileDownloader is a lightweight depot downloader that downloads files normally, but for pak01 VPKs it only downloads the chunks actually needed to export the requested file extensions.
 
-For example, [`hl2/update.sh`](/hl2/update.sh) and
-[`dota/update.sh`](https://github.com/SteamDatabase/GameTracking-Dota2/blob/master/update.sh).
+### Shared tooling
 
-## Join our Discord
+- [`common.sh`](/common.sh) - common functions for dumping protobufs, processing VPKs, fixing encodings, and creating commits.
+- [`tools/build.sh`](/tools/build.sh) - builds the required tools (available as submodules). Requires .NET, Go, and CMake.
 
-[![Join our Discord](https://discord.com/api/guilds/467730051622764565/embed.png?style=banner2)](https://steamdb.info/discord/)
+Supports both Linux and Windows runners.
+
+### Legacy games
+
+Some older games (hl2, portal, l4d, etc.) still have their `update.sh` scripts directly in this repository.
