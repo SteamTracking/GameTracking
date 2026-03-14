@@ -63,7 +63,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf(" > %s - %s\n", name, fileName)
+	fmt.Printf(" %s - %s\n", name, fileName)
 
 	// Seek back to start and read the full file for conversion
 	if _, err := f.Seek(0, io.SeekStart); err != nil {

@@ -32,7 +32,7 @@ fi
 # @param $1 - File extension to process (e.g. .dll, .so, .dylib, .exe)
 ProcessDepot ()
 {
-	echo "::group::Processing binaries"
+	echo "::group::Processing binaries ($1)"
 
 #	rm -r "Protobufs"
 	mkdir -p "Protobufs"
@@ -46,7 +46,7 @@ ProcessDepot ()
 			continue
 		fi
 
-		echo " > $file"
+		echo " $file"
 
 		# Extract protobuf definitions from the binary
 		"$PROTOBUF_DUMPER_PATH" "$file" "Protobufs/" > /dev/null
@@ -93,7 +93,7 @@ ProcessVPK ()
 	# Find all VPK directory files and dump their file listings to .txt
 	while IFS= read -r -d '' file
 	do
-		echo " > $file"
+		echo " $file"
 
 		# Write the VPK's file list to a .txt file with the same name
 		"$VRF_PATH" --input "$file" --vpk_list > "$(echo "$file" | sed -e 's/\.vpk$/\.txt/g')"
@@ -169,7 +169,7 @@ ProcessToolAssetInfo ()
 	# Find all tools asset info binaries and convert them to text
 	while IFS= read -r -d '' file
 	do
-		echo " > $file"
+		echo " $file"
 
 		# Dump asset info in short format, replacing .bin extension with .txt
 		"$VRF_PATH" --input "$file" --output "$(echo "$file" | sed -e 's/\.bin$/\.txt/g')" --tools_asset_info_short || echo "S2V failed to dump tools asset info"
