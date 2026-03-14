@@ -10,21 +10,18 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    release:
+    ensure-release:
         runs-on: ubuntu-latest
         permissions:
             contents: write
         steps:
-        - name: Create or update release
+        - name: Ensure release exists
           env:
             GH_TOKEN: ${{ github.token }}
-          run: |
-            NOTES="Automated tools build from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d)"
-            gh release create tools --repo ${{ github.repository }} --title "Tools" --notes "$NOTES" --latest=false || \
-              gh release edit tools --repo ${{ github.repository }} --notes "$NOTES"
+          run: gh release create tools --title "Tools" --latest=false || true
 
     build:
-        needs: release
+        needs: ensure-release
         strategy:
             matrix:
                 include:
@@ -63,4 +60,15 @@ jobs:
         - name: Upload to release
           env:
             GH_TOKEN: ${{ github.token }}
-          run: gh release upload tools --repo ${{ github.repository }} --clobber tools/${{ matrix.archive }}
+          run: gh release upload tools --clobber tools/${{ matrix.archive }}
+
+    update-release:
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+        - name: Update release notes
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: gh release edit tools --notes "Automated tools build from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d)"

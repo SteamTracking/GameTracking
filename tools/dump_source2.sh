@@ -47,8 +47,7 @@ fi
 # Deduplicate .stringsignore
 STRINGSIGNORE="$DUMP_DIR/.stringsignore"
 if [[ -f "$STRINGSIGNORE" ]]; then
-	sort -u "$STRINGSIGNORE" > "$STRINGSIGNORE.tmp" && mv "$STRINGSIGNORE.tmp" "$STRINGSIGNORE"
-	dos2unix -q "$STRINGSIGNORE"
+	tr -d '\r' < "$STRINGSIGNORE" | sort -u > "$STRINGSIGNORE.tmp" && mv "$STRINGSIGNORE.tmp" "$STRINGSIGNORE"
 fi
 
 if [[ $DUMPER_EXIT_CODE -ne 0 ]]; then
