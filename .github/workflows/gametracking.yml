@@ -26,6 +26,8 @@ on:
                 required: true
             STEAM_PASSWORD:
                 required: true
+            DISPATCH_TOKEN:
+                required: false
 jobs:
     gametracking-setup:
         runs-on: ${{ inputs.run-on-windows && 'windows-latest' || 'ubuntu-latest' }}
@@ -116,6 +118,7 @@ jobs:
         # Post-processing
 
         - name: Dispatch sync to ValveProtobufs
+          if: ${{ secrets.DISPATCH_TOKEN }}
           run: gh api repos/SteamTracking/Protobufs/dispatches -f event_type=sync
           env:
                 GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
