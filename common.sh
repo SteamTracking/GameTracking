@@ -32,7 +32,7 @@ fi
 # @param $1 - File extension to process (e.g. .dll, .so, .dylib, .exe)
 ProcessDepot ()
 {
-	echo "> Processing binaries"
+	echo "::group::Processing binaries"
 
 #	rm -r "Protobufs"
 	mkdir -p "Protobufs"
@@ -81,12 +81,14 @@ ProcessDepot ()
 		# Extract readable strings from the binary, sort and deduplicate them
 		"$DUMP_STRINGS_PATH" -binary "$file" -target "$file_type" | sort --unique > "$strings_file"
 	done <   <(find . -type f -name "*$1" -print0)
+
+	echo "::endgroup::"
 }
 
 # ProcessVPK - Lists contents of VPK directory files and writes them to corresponding .txt files.
 ProcessVPK ()
 {
-	echo "> Processing VPKs"
+	echo "::group::Processing VPKs"
 
 	# Find all VPK directory files and dump their file listings to .txt
 	while IFS= read -r -d '' file
@@ -96,6 +98,8 @@ ProcessVPK ()
 		# Write the VPK's file list to a .txt file with the same name
 		"$VRF_PATH" --input "$file" --vpk_list > "$(echo "$file" | sed -e 's/\.vpk$/\.txt/g')"
 	done <   <(find . -type f -name "*_dir.vpk" -print0)
+
+	echo "::endgroup::"
 }
 
 # DeduplicateStringsFrom - Removes duplicate string lines from extracted strings files
@@ -107,7 +111,7 @@ DeduplicateStringsFrom ()
 	suffix="$1"
 	shift
 
-	echo "> Deduplicating strings ($suffix)"
+	echo "::group::Deduplicating strings ($suffix)"
 
 	# Resolve all dedupe reference files to absolute paths, warn if missing
 	dedupe_files=()
@@ -153,12 +157,14 @@ DeduplicateStringsFrom ()
 		grep "${grep_args[@]}" "$target_file" > "$target_file.tmp" || true
 		mv "$target_file.tmp" "$target_file"
 	done <   <(find . -type f -name "*$suffix" -print0)
+
+	echo "::endgroup::"
 }
 
 # ProcessToolAssetInfo - Converts binary tools asset info files (*asset_info.bin) to readable .txt format.
 ProcessToolAssetInfo ()
 {
-	echo "> Processing tools asset info"
+	echo "::group::Processing tools asset info"
 
 	# Find all tools asset info binaries and convert them to text
 	while IFS= read -r -d '' file
@@ -168,15 +174,19 @@ ProcessToolAssetInfo ()
 		# Dump asset info in short format, replacing .bin extension with .txt
 		"$VRF_PATH" --input "$file" --output "$(echo "$file" | sed -e 's/\.bin$/\.txt/g')" --tools_asset_info_short || echo "S2V failed to dump tools asset info"
 	done <   <(find . -type f -name "*asset_info.bin" -print0)
+
+	echo "::endgroup::"
 }
 
 # FixUCS2 - Converts UCS-2 encoded .txt files to UTF-8 using the FixEncoding tool.
 FixUCS2 ()
 {
-	echo "> Fixing UCS-2"
+	echo "::group::Fixing encodings"
 
 	# Run FixEncoding on all .txt files in parallel (up to 3 at a time)
 	find . -type f -name "*.txt" -print0 | xargs --null --max-lines=1 --max-procs=3 "$FIX_ENCODING_PATH"
+
+	echo "::endgroup::"
 }
 
 # CreateCommit - Stages all changes, creates a git commit with a summary message, and pushes.
@@ -189,6 +199,8 @@ CreateCommit ()
 		echo "Not performing git commit"
 		return
 	fi
+
+	echo "::group::Creating commit"
 
 	# Stage all changes including untracked files
 	git add --all
@@ -205,4 +217,6 @@ CreateCommit ()
 	# Commit (allow failure if there are no changes) and push
 	git commit --message "$message" || true
 	git push
+
+	echo "::endgroup::"
 }
