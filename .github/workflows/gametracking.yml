@@ -1,6 +1,9 @@
 on:
     workflow_call:
         inputs:
+            appid:
+                required: true
+                type: string
             folder:
                 required: true
                 type: string
@@ -9,6 +12,10 @@ on:
                 type: string
                 default: 'public'
             run-on-windows:
+                required: false
+                type: boolean
+                default: false
+            save-manifest:
                 required: false
                 type: boolean
                 default: false
@@ -86,14 +93,17 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+        - name: Download App ${{ inputs.appid }}
+          working-directory: ${{ github.workspace }}/${{ inputs.folder }}
+          shell: bash
+          run: |
+            . ../common.sh
+            $STEAM_FILE_DOWNLOADER_PATH --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-manifest' || '' }}
+
         - name: Execute
           working-directory: ${{ github.workspace }}/${{ inputs.folder }}
           shell: bash
           run: ./update.sh
-          env:
-                STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-                STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
-                STEAM_BRANCH: ${{ inputs.branch }}
         
         - name: Dispatch to ValveProtobufs
           run: gh api repos/SteamTracking/Protobufs/dispatches -f event_type=sync
