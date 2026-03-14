@@ -18,6 +18,10 @@ on:
                 required: false
                 type: boolean
                 default: false
+            reset-gametracking:
+                required: false
+                type: boolean
+                default: false
         secrets:
             STEAM_USERNAME:
                 required: true
@@ -105,6 +109,17 @@ jobs:
           working-directory: ${{ github.workspace }}/tracked_game
           shell: bash
           run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+        - name: Delete non-whitelisted files
+          if: ${{ inputs.reset-gametracking }}
+          working-directory: ${{ github.workspace }}/tracked_game
+          shell: bash
+          run: |
+            find . -mindepth 1 -maxdepth 1 -type d \
+            ! -name 'node_modules' \
+            ! -name '.git' \
+            ! -name '.github' \
+            -exec rm -rf {} \;
 
         - name: Download app ${{ inputs.appid }}
           working-directory: ${{ github.workspace }}/tracked_game
