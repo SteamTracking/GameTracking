@@ -33,6 +33,8 @@ jobs:
         permissions:
             contents: write
             statuses: write
+        env:
+            NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
         steps:
 
         # Checkout and cache
@@ -71,6 +73,7 @@ jobs:
           uses: actions/setup-dotnet@v5
           with:
             dotnet-version: '10.x'
+            cache: true
 
         - name: Build tools
           if: steps.cache.outputs.cache-hit != 'true'
