@@ -1,3 +1,5 @@
+name: GameTracking
+
 on:
     workflow_call:
         inputs:
@@ -31,14 +33,16 @@ jobs:
             contents: write
         steps:
 
-        - name: Checkout GameTracking
+        # Checkout and cache
+
+        - name: Checkout shared GameTracking
           id: checkout-gametracking
           uses: actions/checkout@v6
           with:
             fetch-depth: 1
             repository: 'SteamTracking/GameTracking'
 
-        - name: Grab cache
+        - name: Restore tools cache
           id: cache
           uses: actions/cache@v5
           with:
@@ -46,8 +50,8 @@ jobs:
               ${{ github.workspace }}/tools/*
               !${{ github.workspace }}/tools/build.sh
             key: ${{ runner.os }}-tools-${{ steps.checkout-gametracking.outputs.commit }}
-        
-        - name: Checkout ${{ github.repository }}
+
+        - name: Checkout game repository (${{ github.repository }})
           uses: actions/checkout@v6
           with:
             fetch-depth: 1
@@ -70,7 +74,9 @@ jobs:
           shell: bash
           run: ./tools/build.sh
 
-        - name: Does package-lock.json exist
+        # Optional Node.js setup
+
+        - name: Check for package-lock.json
           id: package-lock-json-exists
           shell: bash
           run: echo "exists=$(test -f ${{ github.workspace }}/${{ inputs.folder }}/package-lock.json && echo true || echo false)" >> $GITHUB_OUTPUT
@@ -83,29 +89,33 @@ jobs:
             cache: 'npm'
             cache-dependency-path: ${{ github.workspace }}/${{ inputs.folder }}/package-lock.json
 
-        - name: Install Node dependencies
+        - name: Install Node.js dependencies
           if: steps.package-lock-json-exists.outputs.exists == 'true'
           working-directory: ${{ github.workspace }}/${{ inputs.folder }}
           run: npm ci
+
+        # Download and process
 
         - name: Configure git user
           run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-        - name: Download App ${{ inputs.appid }}
+        - name: Download app ${{ inputs.appid }}
           working-directory: ${{ github.workspace }}/${{ inputs.folder }}
           shell: bash
           run: |
             . ../common.sh
             $STEAM_FILE_DOWNLOADER_PATH --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-manifest' || '' }}
 
-        - name: Execute
+        - name: Run update script
           working-directory: ${{ github.workspace }}/${{ inputs.folder }}
           shell: bash
           run: ./update.sh
-        
-        - name: Dispatch to ValveProtobufs
+
+        # Post-processing
+
+        - name: Dispatch sync to ValveProtobufs
           run: gh api repos/SteamTracking/Protobufs/dispatches -f event_type=sync
           env:
                 GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
