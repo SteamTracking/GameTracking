@@ -21,20 +21,20 @@ mkdir -p exe
 echo "::group::Build VRF"
 cd ValveResourceFormat
 #dotnet clean --configuration Release CLI/CLI.csproj
-dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=false --self-contained --output ../exe/Source2Viewer/ --runtime "$DOTNET_RUNTIME" -p:DefineConstants=VRF_NO_GENERATOR_VERSION CLI/CLI.csproj
+dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=true --self-contained --output ../exe/Source2Viewer/ --runtime "$DOTNET_RUNTIME" -p:DefineConstants=VRF_NO_GENERATOR_VERSION CLI/CLI.csproj
 echo "::endgroup::"
 
 # SteamFileDownloader
 echo "::group::Build SteamFileDownloader"
 cd ../SteamFileDownloader
-dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=false --self-contained --output ../exe/SteamFileDownloader/ --runtime "$DOTNET_RUNTIME" SteamFileDownloader.csproj
+dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=true --self-contained --output ../exe/SteamFileDownloader/ --runtime "$DOTNET_RUNTIME" SteamFileDownloader.csproj
 echo "::endgroup::"
 
 # ProtobufDumper
 echo "::group::Build ProtobufDumper"
 cd ../SteamKit
 #dotnet clean --configuration Release Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
-dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=false --self-contained --output ../exe/ProtobufDumper/ --runtime "$DOTNET_RUNTIME" Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
+dotnet publish --configuration Release -p:PublishSingleFile=true -p:PublishReadyToRun=true --self-contained --output ../exe/ProtobufDumper/ --runtime "$DOTNET_RUNTIME" Resources/ProtobufDumper/ProtobufDumper/ProtobufDumper.csproj
 echo "::endgroup::"
 
 # Strings
