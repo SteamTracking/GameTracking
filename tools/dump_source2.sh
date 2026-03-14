@@ -44,10 +44,16 @@ else
 	mv libvideo.so.original libvideo.so
 fi
 
-echo "::endgroup::"
+# Deduplicate .stringsignore
+STRINGSIGNORE="$DUMP_DIR/.stringsignore"
+if [[ -f "$STRINGSIGNORE" ]]; then
+	sort -u "$STRINGSIGNORE" > "$STRINGSIGNORE.tmp" && mv "$STRINGSIGNORE.tmp" "$STRINGSIGNORE"
+fi
 
 if [[ $DUMPER_EXIT_CODE -ne 0 ]]; then
 	echo "::error title=DumpSource2-$1 failed::Exit code $DUMPER_EXIT_CODE"
 fi
+
+echo "::endgroup::"
 
 exit "$DUMPER_EXIT_CODE"
