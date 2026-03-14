@@ -37,6 +37,24 @@ ProcessDepot ()
 #	rm -r "Protobufs"
 	mkdir -p "Protobufs"
 
+	# Map the file extension to the binary format type for the strings dumper
+	local file_type=""
+	case "$1" in
+		.dylib)
+			file_type="macho"
+			;;
+		.so)
+			file_type="elf"
+			;;
+		.dll|.exe)
+			file_type="pe"
+			;;
+		*)
+			echo "Unknown file type $1"
+			echo "::endgroup::"
+			return
+	esac
+
 	# Find all files matching the given extension and process each one
 	while IFS= read -r -d '' file
 	do
@@ -50,26 +68,6 @@ ProcessDepot ()
 
 		# Extract protobuf definitions from the binary
 		"$PROTOBUF_DUMPER_PATH" "$file" "Protobufs/" > /dev/null
-
-		# Map the file extension to the binary format type for the strings dumper
-		file_type=""
-		case "$1" in
-			.dylib)
-				file_type="macho"
-				;;
-			.so)
-				file_type="elf"
-				;;
-			.dll)
-				file_type="pe"
-				;;
-			.exe)
-				file_type="pe"
-				;;
-			*)
-				echo "Unknown file type $1"
-				continue
-		esac
 
 		# Derive the output strings filename by replacing the extension with _strings.txt
 		if [[ "$1" == ".exe" ]]; then
@@ -124,16 +122,9 @@ DeduplicateStringsFrom ()
 		fi
 	done
 
-	# Build grep arguments to filter out lines found in any of the reference files
-	grep_args=(
-		--fixed-strings
-		--line-regexp
-		--invert-match
-	)
-
-	for dedupe_file in "${dedupe_files[@]}"; do
-		grep_args+=(--file "$dedupe_file")
-	done
+	# Merge all reference files into a single sorted set
+	merged_dedupe="$(mktemp)"
+	sort --unique --merge "${dedupe_files[@]}" > "$merged_dedupe"
 
 	# Iterate over all binaries matching the suffix and process their strings files
 	while IFS= read -r -d '' file
@@ -154,9 +145,11 @@ DeduplicateStringsFrom ()
 		done
 
 		# Remove lines present in reference files and replace the original
-		grep "${grep_args[@]}" "$target_file" > "$target_file.tmp" || true
+		comm -23 "$target_file" "$merged_dedupe" > "$target_file.tmp"
 		mv "$target_file.tmp" "$target_file"
 	done <   <(find . -type f -name "*$suffix" -print0)
+
+	rm -f "$merged_dedupe"
 
 	echo "::endgroup::"
 }
