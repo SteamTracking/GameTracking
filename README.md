@@ -7,6 +7,7 @@ This repository contains shared tooling and scripts used by the individual game 
 ### How it works
 
 Each game has its own repository (e.g. [GameTracking-Dota2](https://github.com/SteamTracking/GameTracking-Dota2), [GameTracking-CS2](https://github.com/SteamTracking/GameTracking-CS2)) which contains:
+- `.github/workflows/update.yml` - workflow that calls the reusable workflow in this repository.
 - `files.json` - a mapping of depot ids and which files to download from them.
 - `update.sh` - the script that runs when the game is updated.
 

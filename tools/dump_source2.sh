@@ -10,6 +10,8 @@ TOOLS_DIR="$(dirname "$(realpath -s "${BASH_SOURCE[0]}")")"
 
 echo "::group::DumpSource2-$1"
 
+mkdir -p "DumpSource2"
+
 if [[ "$(uname -s)" == MINGW* ]] || [[ "$(uname -s)" == MSYS* ]]; then
 	DUMPER_PATH="$TOOLS_DIR/DumpSource2/build/Release/DumpSource2-$1.exe"
 	DUMP_DIR="$(realpath "DumpSource2/")"
