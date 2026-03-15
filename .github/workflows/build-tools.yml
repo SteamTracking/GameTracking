@@ -18,7 +18,7 @@ jobs:
         - name: Ensure release exists
           env:
             GH_TOKEN: ${{ github.token }}
-          run: gh release create tools --title "Tools" --latest=false || true
+          run: gh release create tools --repo "$GITHUB_REPOSITORY" --title "Tools" --latest=false || true
 
     build:
         needs: ensure-release
@@ -71,4 +71,4 @@ jobs:
         - name: Update release notes
           env:
             GH_TOKEN: ${{ github.token }}
-          run: gh release edit tools --notes "Automated tools build from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d)"
+          run: gh release edit tools --repo "$GITHUB_REPOSITORY" --notes "Automated tools build from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d)"
