@@ -28,6 +28,20 @@ if [[ $# -gt 0 ]]; then
 	fi
 fi
 
+# _StringsPath - Derives the _strings.txt path from a binary file path and its extension.
+# .exe files append _strings.txt (foo.exe -> foo.exe_strings.txt),
+# other extensions replace the suffix (foo.dll -> foo_strings.txt).
+# @param $1 - File path
+# @param $2 - File extension
+_StringsPath ()
+{
+	if [[ "$2" == ".exe" ]]; then
+		echo "${1}_strings.txt"
+	else
+		echo "${1/%$2/_strings.txt}"
+	fi
+}
+
 # _ProcessBinary - Processes a single binary file by dumping protobufs and extracting strings.
 # @param $1 - File path to process
 # @param $2 - File extension (e.g. .dll, .so, .dylib, .exe)
@@ -37,8 +51,9 @@ _ProcessBinary ()
 	local ext="$2"
 
 	# Skip common not game-specific binaries
-	if [[ "$(basename "$file" "$ext")" = "steamclient" ]] || [[ "$(basename "$file" "$ext")" = "libcef" ]]
-	then
+	local name
+	name="$(basename "$file" "$ext")"
+	if [[ "$name" = "steamclient" ]] || [[ "$name" = "libcef" ]]; then
 		return
 	fi
 
@@ -47,16 +62,8 @@ _ProcessBinary ()
 	# Extract protobuf definitions from the binary
 	"$PROTOBUF_DUMPER_PATH" "$file" "Protobufs/" > /dev/null
 
-	# Derive the output strings filename by replacing the extension with _strings.txt
-	local strings_file
-	if [[ "$ext" == ".exe" ]]; then
-		strings_file="${file}_strings.txt"
-	else
-		strings_file="${file/%$ext/_strings.txt}"
-	fi
-
 	# Extract readable strings from the binary, sort and deduplicate them
-	"$DUMP_STRINGS_PATH" -binary "$file" | sort --unique > "$strings_file"
+	"$DUMP_STRINGS_PATH" -binary "$file" | sort --unique > "$(_StringsPath "$file" "$ext")"
 }
 
 # ProcessDepot - Processes binary files by dumping protobufs and extracting strings.
@@ -168,14 +175,8 @@ DeduplicateStringsFrom ()
 		while IFS= read -r -d '' file
 		do
 			# Derive the corresponding _strings.txt path from the binary path
-			local resolved_file
-			resolved_file="$(realpath "$file")"
 			local target_file
-			if [[ "$suffix" == ".exe" ]]; then
-				target_file="${resolved_file}_strings.txt"
-			else
-				target_file="${resolved_file/%$suffix/_strings.txt}"
-			fi
+			target_file="$(_StringsPath "$(realpath "$file")" "$suffix")"
 
 			# Skip if no strings file exists for this binary
 			if ! [[ -f "$target_file" ]]; then
