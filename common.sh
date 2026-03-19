@@ -28,57 +28,64 @@ if [[ $# -gt 0 ]]; then
 	fi
 fi
 
-# ProcessDepot - Processes binary files of a given type by dumping protobufs and extracting strings.
-# @param $1 - File extension to process (e.g. .dll, .so, .dylib, .exe)
+# _ProcessBinary - Processes a single binary file by dumping protobufs and extracting strings.
+# @param $1 - File path to process
+# @param $2 - File extension (e.g. .dll, .so, .dylib, .exe)
+_ProcessBinary ()
+{
+	local file="$1"
+	local ext="$2"
+
+	# Skip common not game-specific binaries
+	if [[ "$(basename "$file" "$ext")" = "steamclient" ]] || [[ "$(basename "$file" "$ext")" = "libcef" ]]
+	then
+		return
+	fi
+
+	echo " $file"
+
+	# Extract protobuf definitions from the binary
+	"$PROTOBUF_DUMPER_PATH" "$file" "Protobufs/" > /dev/null
+
+	# Derive the output strings filename by replacing the extension with _strings.txt
+	local strings_file
+	if [[ "$ext" == ".exe" ]]; then
+		strings_file="${file}_strings.txt"
+	else
+		strings_file="${file/%$ext/_strings.txt}"
+	fi
+
+	# Extract readable strings from the binary, sort and deduplicate them
+	"$DUMP_STRINGS_PATH" -binary "$file" | sort --unique > "$strings_file"
+}
+
+# ProcessDepot - Processes binary files by dumping protobufs and extracting strings.
+# @param $@ - File extensions to process (e.g. .dll .so .dylib .exe)
 ProcessDepot ()
 {
-	echo "::group::Processing binaries ($1)"
+	echo "::group::Processing binaries ($*)"
 
 #	rm -r "Protobufs"
 	mkdir -p "Protobufs"
 
-	# Map the file extension to the binary format type for the strings dumper
-	local file_type=""
-	case "$1" in
-		.dylib)
-			file_type="macho"
-			;;
-		.so)
-			file_type="elf"
-			;;
-		.dll|.exe)
-			file_type="pe"
-			;;
-		*)
-			echo "Unknown file type $1"
-			echo "::endgroup::"
-			return
-	esac
+	local max_jobs=10
+	local job_count=0
 
-	# Find all files matching the given extension and process each one
-	while IFS= read -r -d '' file
-	do
-		# Skip common not game-specific binaries
-		if [[ "$(basename "$file" "$1")" = "steamclient" ]] || [[ "$(basename "$file" "$1")" = "libcef" ]]
-		then
-			continue
-		fi
+	for ext in "$@"; do
+		# Find all files matching the given extension and process each one
+		while IFS= read -r -d '' file
+		do
+			_ProcessBinary "$file" "$ext" &
 
-		echo " $file"
+			((job_count++))
+			if ((job_count >= max_jobs)); then
+				wait -n
+				((job_count--))
+			fi
+		done <   <(find . -type f -name "*$ext" -print0)
+	done
 
-		# Extract protobuf definitions from the binary
-		"$PROTOBUF_DUMPER_PATH" "$file" "Protobufs/" > /dev/null
-
-		# Derive the output strings filename by replacing the extension with _strings.txt
-		if [[ "$1" == ".exe" ]]; then
-			strings_file="${file}_strings.txt"
-		else
-			strings_file="$(echo "$file" | sed -e "s/$(echo "$1" | sed 's/\./\\./g')$/_strings.txt/g")"
-		fi
-
-		# Extract readable strings from the binary, sort and deduplicate them
-		"$DUMP_STRINGS_PATH" -binary "$file" -target "$file_type" | sort --unique > "$strings_file"
-	done <   <(find . -type f -name "*$1" -print0)
+	wait
 
 	echo "::endgroup::"
 }
@@ -94,26 +101,52 @@ ProcessVPK ()
 		echo " $file"
 
 		# Write the VPK's file list to a .txt file with the same name
-		"$VRF_PATH" --input "$file" --vpk_list > "$(echo "$file" | sed -e 's/\.vpk$/\.txt/g')"
+		"$VRF_PATH" --input "$file" --vpk_list > "${file/%.vpk/.txt}"
 	done <   <(find . -type f -name "*_dir.vpk" -print0)
 
 	echo "::endgroup::"
 }
 
+# _DeduplicateStringsFile - Deduplicates a single strings file against a merged reference.
+# @param $1 - Strings file to deduplicate
+# @param $2 - Merged dedupe reference file
+_DeduplicateStringsFile ()
+{
+	local target_file="$1"
+	local merged_dedupe="$2"
+
+	# Remove lines present in reference files and replace the original
+	comm -23 "$target_file" "$merged_dedupe" > "$target_file.tmp"
+	mv "$target_file.tmp" "$target_file"
+}
+
 # DeduplicateStringsFrom - Removes duplicate string lines from extracted strings files
 #   by filtering out lines that appear in the provided dedupe reference files.
-# @param $1 - File suffix to match binaries (e.g. .dll, .so)
-# @param $@ - One or more reference files whose lines will be subtracted from other strings files
+# @param -- - Separator between suffixes and reference files
+# @usage DeduplicateStringsFrom .dll .exe -- file1.txt file2.txt
 DeduplicateStringsFrom ()
 {
-	suffix="$1"
-	shift
+	# Split arguments into suffixes (before --) and reference files (after --)
+	local suffixes=()
+	local ref_files=()
+	local found_separator=0
 
-	echo "::group::Deduplicating strings ($suffix)"
+	for arg in "$@"; do
+		if [[ "$arg" == "--" ]]; then
+			found_separator=1
+		elif ((found_separator)); then
+			ref_files+=("$arg")
+		else
+			suffixes+=("$arg")
+		fi
+	done
+
+	echo "::group::Deduplicating strings (${suffixes[*]})"
 
 	# Resolve all dedupe reference files to absolute paths, warn if missing
-	dedupe_files=()
-	for file in "$@"; do
+	local dedupe_files=()
+	for file in "${ref_files[@]}"; do
+		local resolved
 		resolved="$(realpath "$file")"
 		if [[ -f "$resolved" ]]; then
 			dedupe_files+=("$resolved")
@@ -123,31 +156,50 @@ DeduplicateStringsFrom ()
 	done
 
 	# Merge all reference files into a single sorted set
+	local merged_dedupe
 	merged_dedupe="$(mktemp)"
 	sort --unique --merge "${dedupe_files[@]}" > "$merged_dedupe"
 
-	# Iterate over all binaries matching the suffix and process their strings files
-	while IFS= read -r -d '' file
-	do
-		# Derive the corresponding _strings.txt path from the binary path
-		target_file="$(realpath "$file" | sed -e "s/$(echo "$suffix" | sed 's/\./\\./g')$/_strings.txt/g")"
+	local max_jobs=10
+	local job_count=0
 
-		# Skip if no strings file exists for this binary
-		if ! [[ -f "$target_file" ]]; then
-			continue
-		fi
-
-		# Don't deduplicate a file against itself
-		for dedupe_file in "${dedupe_files[@]}"; do
-			if [[ "$dedupe_file" = "$target_file" ]]; then
-				continue 2
+	for suffix in "${suffixes[@]}"; do
+		# Iterate over all binaries matching the suffix and process their strings files
+		while IFS= read -r -d '' file
+		do
+			# Derive the corresponding _strings.txt path from the binary path
+			local resolved_file
+			resolved_file="$(realpath "$file")"
+			local target_file
+			if [[ "$suffix" == ".exe" ]]; then
+				target_file="${resolved_file}_strings.txt"
+			else
+				target_file="${resolved_file/%$suffix/_strings.txt}"
 			fi
-		done
 
-		# Remove lines present in reference files and replace the original
-		comm -23 "$target_file" "$merged_dedupe" > "$target_file.tmp"
-		mv "$target_file.tmp" "$target_file"
-	done <   <(find . -type f -name "*$suffix" -print0)
+			# Skip if no strings file exists for this binary
+			if ! [[ -f "$target_file" ]]; then
+				continue
+			fi
+
+			# Don't deduplicate a file against itself
+			for dedupe_file in "${dedupe_files[@]}"; do
+				if [[ "$dedupe_file" = "$target_file" ]]; then
+					continue 2
+				fi
+			done
+
+			_DeduplicateStringsFile "$target_file" "$merged_dedupe" &
+
+			((job_count++))
+			if ((job_count >= max_jobs)); then
+				wait -n
+				((job_count--))
+			fi
+		done <   <(find . -type f -name "*$suffix" -print0)
+	done
+
+	wait
 
 	rm -f "$merged_dedupe"
 
@@ -165,7 +217,7 @@ ProcessToolAssetInfo ()
 		echo " $file"
 
 		# Dump asset info in short format, replacing .bin extension with .txt
-		"$VRF_PATH" --input "$file" --output "$(echo "$file" | sed -e 's/\.bin$/\.txt/g')" --tools_asset_info_short || echo "S2V failed to dump tools asset info"
+		"$VRF_PATH" --input "$file" --output "${file/%.bin/.txt}" --tools_asset_info_short || echo "S2V failed to dump tools asset info"
 	done <   <(find . -type f -name "*asset_info.bin" -print0)
 
 	echo "::endgroup::"
