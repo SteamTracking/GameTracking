@@ -84,7 +84,7 @@ ProcessDepot ()
 		do
 			_ProcessBinary "$file" "$ext" &
 
-			((job_count++))
+			((++job_count))
 			if ((job_count >= max_jobs)); then
 				wait -n
 				((job_count--))
@@ -192,7 +192,7 @@ DeduplicateStringsFrom ()
 
 			_DeduplicateStringsFile "$target_file" "$merged_dedupe" &
 
-			((job_count++))
+			((++job_count))
 			if ((job_count >= max_jobs)); then
 				wait -n
 				((job_count--))
