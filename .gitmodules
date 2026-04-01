@@ -16,7 +16,7 @@
 	shallow = true
 [submodule "tools/DumpSource2"]
 	path = tools/DumpSource2
-	url = https://github.com/ValveResourceFormat/DumpSource2
+	url = https://github.com/Lifeismana/DumpSource2
 	shallow = true
 [submodule "tools/SteamFileDownloader"]
 	path = tools/SteamFileDownloader
