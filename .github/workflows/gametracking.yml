@@ -194,3 +194,13 @@ jobs:
           env:
                 GH_TOKEN: ${{ secrets.DISPATCH_TOKEN_SOURCE2WIKI }}
 
+        - name: Summarize commit
+          if: ${{ env.ANTHROPIC_API_KEY != '' && steps.set-status.outputs.sha && steps.before.outputs.sha != steps.set-status.outputs.sha }}
+          continue-on-error: true
+          timeout-minutes: 60
+          uses: ./.github/actions/commit-summary
+          with:
+            sha: ${{ steps.set-status.outputs.sha }}
+          env:
+            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
