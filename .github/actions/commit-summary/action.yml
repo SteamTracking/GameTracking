@@ -14,7 +14,6 @@ runs:
     using: composite
     steps:
         - name: Prepare prompt
-          id: prepare
           shell: bash
           working-directory: tracked_game
           run: |
@@ -30,7 +29,6 @@ runs:
             wait
 
             {
-              echo 'prompt<<EOF_PROMPT'
               cat "$GITHUB_ACTION_PATH/prompt.md"
               echo
               echo '## This run'
@@ -38,17 +36,48 @@ runs:
               echo '- The commit to summarise is `<sha>` = `${{ inputs.sha }}`.'
               echo '- Repos of the other games are checked out at their latest commit under `siblings/`.'
               echo '- Write the comment body (or `NO_COMMENT`) to `commit_summary.md` in the current directory. Apart from temporary files, that is the only file you may write.'
-              echo 'EOF_PROMPT'
-            } >> "$GITHUB_OUTPUT"
+            } > "$RUNNER_TEMP/commit_summary_prompt.md"
+
+        # The installers are per platform, both install to ~/.local/bin. Retried as downloads can be rate limited.
+        - name: Install Claude Code (Windows)
+          if: runner.os == 'Windows'
+          shell: pwsh
+          run: |
+            for ($attempt = 1; $true; $attempt++) {
+              try {
+                & ([scriptblock]::Create((Invoke-RestMethod https://claude.ai/install.ps1)))
+                if (Test-Path "$env:USERPROFILE\.local\bin\claude.exe") { break }
+                throw "claude.exe was not installed"
+              } catch {
+                if ($attempt -ge 3) { throw }
+                Write-Host "Install attempt $attempt failed: $_"
+                Start-Sleep -Seconds (10 * $attempt)
+              }
+            }
+            "$env:USERPROFILE\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+        - name: Install Claude Code (Linux)
+          if: runner.os != 'Windows'
+          shell: bash
+          run: |
+            set -o pipefail
+            for attempt in 1 2 3; do
+              if curl -fsSL https://claude.ai/install.sh | bash; then
+                break
+              fi
+              if [[ $attempt == 3 ]]; then
+                exit 1
+              fi
+              echo "Install attempt $attempt failed"
+              sleep $((10 * attempt))
+            done
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
         - name: Run Claude Code
-          uses: anthropics/claude-code-action@v1
-          with:
-            anthropic_api_key: ${{ env.ANTHROPIC_API_KEY }}
-            github_token: ${{ github.token }}
-            prompt: ${{ steps.prepare.outputs.prompt }}
-            claude_args: >-
-              --model ${{ inputs.model }}
+          shell: bash
+          run: |
+            claude -p "$(cat "$RUNNER_TEMP/commit_summary_prompt.md")" \
+              --model "${{ inputs.model }}" \
               --allowedTools "Bash,Read,Grep,Glob,Agent,Write(commit_summary.md)"
 
         - name: Post comment
