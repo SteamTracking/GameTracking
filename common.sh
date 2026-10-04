@@ -60,9 +60,11 @@ _ProcessBinary ()
 
 	echo " $file"
 
-	# Extract protobuf definitions from the binary into an isolated temp directory
-	local my_tmp
-	my_tmp="$(mktemp -d -p "$proto_tmp_dir")"
+	# Extract protobuf definitions from the binary into an isolated temp directory,
+	# named after the binary so binaries that embed different versions of a proto are merged in the same order
+	local my_tmp="${file#./}"
+	my_tmp="$proto_tmp_dir/${my_tmp//\//_}"
+	mkdir -p "$my_tmp"
 	"$PROTOBUF_DUMPER_PATH" "$file" "$my_tmp/" > /dev/null
 
 	# Extract readable strings from the binary, sort and deduplicate them
