@@ -126,7 +126,7 @@ jobs:
           shell: bash
           run: |
             . ../common.sh
-            $STEAM_FILE_DOWNLOADER_PATH --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-manifest' || '' }}
+            $STEAM_FILE_DOWNLOADER_PATH --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-all-manifests' || '' }}
 
         - name: Run update script
           working-directory: ${{ github.workspace }}/tracked_game
