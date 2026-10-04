@@ -29,6 +29,6 @@ Each game repository's update workflow can be triggered manually via [workflow d
 
 - [`common.sh`](/common.sh) - common functions for dumping protobufs, processing VPKs, fixing encodings, and creating commits.
 - [`tools/build.sh`](/tools/build.sh) - builds the required tools (available as submodules). Requires .NET, Go, and CMake.
-- [`.github/actions/commit-summary`](/.github/actions/commit-summary) - summarises each new game commit ([`prompt.md`](/.github/actions/commit-summary/prompt.md)) and posts it as a commit comment. It only runs when the `ANTHROPIC_API_KEY` secret is set.
+- [`.github/actions/commit-summary`](/.github/actions/commit-summary) - summarises each new game commit ([`prompt.md`](/.github/actions/commit-summary/prompt.md)) and posts it as a commit comment. It only runs when the `CLAUDE_CODE_OAUTH_TOKEN` secret is set.
 
 Supports both Linux and Windows runners.
