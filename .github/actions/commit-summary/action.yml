@@ -13,21 +13,31 @@ inputs:
 runs:
     using: composite
     steps:
-        - name: Prepare prompt
+        # Older builds are needed for revert checks and "is this new" lookups
+        - name: Fetch older builds
           shell: bash
           working-directory: tracked_game
+          run: git fetch --quiet --deepen=30 origin
+
+        # Latest state of the other Source 2 games, to spot shared engine changes
+        - name: Clone GameTracking-CS2
+          if: github.repository != 'SteamTracking/GameTracking-CS2'
+          shell: bash
+          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-CS2.git "$GITHUB_WORKSPACE/siblings/GameTracking-CS2"
+
+        - name: Clone GameTracking-Dota2
+          if: github.repository != 'SteamTracking/GameTracking-Dota2'
+          shell: bash
+          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-Dota2.git "$GITHUB_WORKSPACE/siblings/GameTracking-Dota2"
+
+        - name: Clone GameTracking-Deadlock
+          if: github.repository != 'SteamTracking/GameTracking-Deadlock'
+          shell: bash
+          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-Deadlock.git "$GITHUB_WORKSPACE/siblings/GameTracking-Deadlock"
+
+        - name: Prepare prompt
+          shell: bash
           run: |
-            # Older builds are needed for revert checks and "is this new" lookups
-            git fetch --quiet --deepen=30 origin
-
-            # Latest state of the other Source 2 games, to spot shared engine changes
-            for repo in GameTracking-CS2 GameTracking-Dota2 GameTracking-Deadlock; do
-              if [[ "$GITHUB_REPOSITORY" != "SteamTracking/$repo" ]]; then
-                git clone --quiet --depth=1 "https://github.com/SteamTracking/$repo.git" "$GITHUB_WORKSPACE/siblings/$repo" &
-              fi
-            done
-            wait
-
             {
               cat "$GITHUB_ACTION_PATH/prompt.md"
               echo
