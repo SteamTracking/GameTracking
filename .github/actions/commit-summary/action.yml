@@ -21,6 +21,14 @@ runs:
             # Older builds are needed for revert checks and "is this new" lookups
             git fetch --quiet --deepen=30 origin
 
+            # Latest state of the other Source 2 games, to spot shared engine changes
+            for repo in GameTracking-CS2 GameTracking-Dota2 GameTracking-Deadlock; do
+              if [[ "$GITHUB_REPOSITORY" != "SteamTracking/$repo" ]]; then
+                git clone --quiet --depth=1 "https://github.com/SteamTracking/$repo.git" "$GITHUB_WORKSPACE/siblings/$repo" &
+              fi
+            done
+            wait
+
             {
               echo 'prompt<<EOF_PROMPT'
               cat "$GITHUB_ACTION_PATH/prompt.md"
@@ -28,7 +36,8 @@ runs:
               echo '## This run'
               echo '- The game repository is checked out at `tracked_game/`; run git as `git -C tracked_game …`.'
               echo '- The commit to summarise is `<sha>` = `${{ inputs.sha }}`.'
-              echo '- Write the comment body (or `NO_COMMENT`) to `commit_summary.md` in the current directory. That is the only file you may write.'
+              echo '- Repos of the other games are checked out at their latest commit under `siblings/`.'
+              echo '- Write the comment body (or `NO_COMMENT`) to `commit_summary.md` in the current directory. Apart from temporary files, that is the only file you may write.'
               echo 'EOF_PROMPT'
             } >> "$GITHUB_OUTPUT"
 
