@@ -1,5 +1,5 @@
 name: Commit summary
-description: Summarises a GameTracking commit with Claude Code and posts it as a commit comment. Reads the API key from the ANTHROPIC_API_KEY environment variable.
+description: Summarises a GameTracking commit with Claude Code and posts it as a commit comment. Reads the token from the CLAUDE_CODE_OAUTH_TOKEN environment variable (made with claude setup-token).
 
 inputs:
     sha:
@@ -78,7 +78,7 @@ runs:
           run: |
             claude -p "$(cat "$RUNNER_TEMP/commit_summary_prompt.md")" \
               --model "${{ inputs.model }}" \
-              --allowedTools "Bash,Read,Grep,Glob,Agent,Write(commit_summary.md)"
+              --permission-mode auto
 
         - name: Post comment
           shell: bash
