@@ -45,7 +45,7 @@ runs:
               echo '- The game repository is checked out at `tracked_game/`; run git as `git -C tracked_game …`.'
               echo '- The commit to summarise is `<sha>` = `${{ inputs.sha }}`.'
               echo '- Repos of the other games are checked out at their latest commit under `siblings/`.'
-              echo '- Write the comment body (or `NO_COMMENT`) to `commit_summary.md` in the current directory. Apart from temporary files, that is the only file you may write.'
+              echo '- Write the comment body (or `NO_COMMENT`) to `${{ github.workspace }}/commit_summary.md`, using this exact absolute path. Apart from temporary files, that is the only file you may write. Only that file is posted, not your final reply.'
             } > "$RUNNER_TEMP/commit_summary_prompt.md"
 
         # The installers are per platform, both install to ~/.local/bin. Retried as downloads can be rate limited.
@@ -93,7 +93,13 @@ runs:
         - name: Post comment
           shell: bash
           run: |
-            if [[ ! -s commit_summary.md ]] || [[ "$(tr -d '[:space:]`' < commit_summary.md)" == "NO_COMMENT" ]]; then
+            if [[ ! -s commit_summary.md ]]; then
+              echo "::error::Claude Code did not write commit_summary.md"
+              find . -name commit_summary.md -not -path '*/.git/*'
+              exit 1
+            fi
+
+            if [[ "$(tr -d '[:space:]`' < commit_summary.md)" == "NO_COMMENT" ]]; then
               echo "Nothing worth commenting"
               exit 0
             fi
