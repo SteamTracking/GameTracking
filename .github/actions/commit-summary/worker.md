@@ -5,11 +5,15 @@ You cover one area of the commit, named in your task with its file list. Read ev
 **Notes.** Write your notes to `<notes>/<area>.md`, with the area name from your task, in this order:
 1. `STATUS`: `FILES <read to the end>/<listed>`; `UNACCOUNTED: <paths not read to the end, or none>`; `UNCHECKED: <names called new or removed without the check, or none>`; `LEADS: <names for other areas to look up, or none>`.
 2. One line per file: `noise: <why>`, or the findings it supports.
-3. Findings, each as a draft comment line following "Writing", ready to paste: one line per change, never a list of names under one heading. Evidence strength sets the wording ("strings suggest …", "only in server strings"), never whether a line exists: a name that passed the check gets its own line even when strings are the only evidence. Under each line, indented: the evidence lines, the check command and its output for every "new" and "removed", and what the change means for players or dataminers, so the comment's author can place it without rereading the diff.
+3. Findings, each as a draft comment line following "Writing", ready to paste: one line per change, never a list of names under one heading. Evidence strength sets the wording ("strings suggest …", "only in server strings"), never whether a line exists: a name that passed the check gets its own line even when strings are the only evidence. Under each line, indented: the evidence lines, the check command and its output for every "new" and "removed", and what the change means for players or dataminers.
+
+The notes are for the writer, who never sees the diff, so be generous under each draft line: the English text that describes it, related values in the same block, what existed before, and how it connects to other changes you saw. The writer trims; it can't add what you left out.
 
 Your reply is only the STATUS block and the notes path.
 
 **Reading.** Tool output is silently truncated at about 30,000 characters: write large output to a temp file and read it in slices (`sed -n '1,400p'`, then the next range). Never filter a diff you haven't read.
+
+**Meaning.** Describe a mechanic from the game's English description and its data together, never from a property or class name alone. Before calling a system removed or reworked, find what replaces it at `<sha>` and what existed alongside it at `<prev>`, and describe the change as players see it.
 
 **By area:**
 - **Build files:** `steam.inf`, `manifests/`, `files.json`. A depot file that changed but whose content isn't tracked (a map VPK, a binary) is still a finding: name it.

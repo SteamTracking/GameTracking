@@ -8,7 +8,11 @@ inputs:
     model:
         description: 'Claude model'
         required: false
-        default: 'claude-sonnet-5-5'
+        default: 'opus'
+    worker-model:
+        description: 'Claude model for the workers that read the diff'
+        required: false
+        default: 'sonnet'
 
 runs:
     using: composite
@@ -35,7 +39,7 @@ runs:
           shell: bash
           run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-Deadlock.git "$GITHUB_WORKSPACE/siblings/GameTracking-Deadlock"
 
-        # The main session orchestrates, and the worker agent's system prompt holds the instructions for reading the diff
+        # The main session orchestrates, worker agents read the diff and a writer agent turns their notes into the comment
         - name: Prepare prompts
           shell: bash
           run: |
@@ -53,16 +57,23 @@ runs:
               echo "- Repos of the other games are checked out at their latest commit under \`$workspace/siblings/\`."
               echo "- \`<tools>\` is \`$tools\`."
               echo "- \`<notes>\` is \`$notes\`."
-              echo "- The orchestrator writes the comment body (or \`NO_COMMENT\`) to \`$out\`, using this exact absolute path. Apart from that file, notes and temp files from \`mktemp\`, nobody writes anything. Only that file is posted, not the final reply."
+              echo "- The comment body (or \`NO_COMMENT\`) goes to \`$out\`, this exact absolute path, and only the writer writes it. Apart from that file, notes and temp files from \`mktemp\`, nobody writes anything. Only that file is posted, not the final reply."
             )
 
             mkdir -p "$RUNNER_TEMP/commit_summary_notes"
 
             printf '%s\n\n%s\n\n%s\n' "$(cat "$GITHUB_ACTION_PATH/common.md")" "$(cat "$GITHUB_ACTION_PATH/orchestrator.md")" "$run" > "$RUNNER_TEMP/commit_summary_prompt.md"
 
+            role() { printf '%s\n\n%s\n\n%s\n' "$(cat "$GITHUB_ACTION_PATH/common.md")" "$(cat "$GITHUB_ACTION_PATH/$1.md")" "$run"; }
+
             jq -n \
-              --arg prompt "$(printf '%s\n\n%s\n\n%s\n' "$(cat "$GITHUB_ACTION_PATH/common.md")" "$(cat "$GITHUB_ACTION_PATH/worker.md")" "$run")" \
-              '{worker: {description: "Reads one area of a GameTracking commit diff completely and writes notes with findings and evidence", prompt: $prompt}}' \
+              --arg worker "$(role worker)" \
+              --arg writer "$(role writer)" \
+              --arg worker_model "${{ inputs.worker-model }}" \
+              '{
+                worker: {description: "Reads one area of a GameTracking commit diff completely and writes notes with findings and evidence", prompt: $worker, model: $worker_model},
+                writer: {description: "Writes the commit comment from the workers notes and checks it against the rules", prompt: $writer}
+              }' \
               > "$RUNNER_TEMP/commit_summary_agents.json"
 
         # The installers are per platform, both install to ~/.local/bin. Retried as downloads can be rate limited.

@@ -21,8 +21,25 @@ The repo is read-only. The working tree is at `<sha>`; read older builds with `g
 ## Writing
 
 For a dataminer skimming a feed:
-- One terse line per change. Name things, don't describe files: no sizes, CRCs, hashes, versions, dates or tallies. Game values are fine.
+- One terse line per change. Name things, don't describe files: no sizes, CRCs, hashes, versions, build dates or tallies. Game values are fine.
 - Give each change what a dataminer needs: the name, old → new values, convar defaults and flags, key strings and the mechanics the data shows. Leave out implementation detail (internal UI and style names, layout values, audio settings, full paths, enum numbers, descriptions that repeat the line) unless it's the evidence.
+- `→` marks a changed value. New content gets plain values or ranges. Timestamps in game data are written as dates.
 - A changed file whose content isn't tracked (a map VPK, a binary) is still worth naming.
 - Mark inferences. Write impersonally, never "I".
+
+## Output
+
+`NO_COMMENT` if nothing is worth telling a dataminer, including a build whose only changes are tracker noise or trivial string edits. Otherwise only the comment body:
+
+```
+<one short sentence, under ~120 chars>
+
+### <Feature group>
+- …
+
+**Also:** <terse minor changes; omit if none>
+```
+
+- The first line names the most notable changes, or the commit type (a revert or a dump re-run, citing other commits by SHA). No build numbers or versions.
+- Let the number of real changes decide the length, not the detail per change. Skip sections when there are only a few changes.
 
