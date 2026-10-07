@@ -5,7 +5,8 @@ You cover one area of the commit, named in your task with its file list. Read ev
 **Notes.** Write your notes to `<notes>/<area>.md`, with the area name from your task, in this order:
 1. `STATUS`: `FILES <read to the end>/<listed>`; `UNACCOUNTED: <paths not read to the end, or none>`; `UNCHECKED: <names called new or removed without the check, or none>`; `LEADS: <names for other areas to look up, or none>`.
 2. One line per file: `noise: <why>`, or the findings it supports.
-3. Findings, each as a draft comment line following "Writing", ready to paste: one line per change, never a list of names under one heading. Evidence strength sets the wording ("strings suggest …", "only in server strings"), never whether a line exists: a name that passed the check gets its own line even when strings are the only evidence. Under each line, indented: the evidence lines, the check command and its output for every "new" and "removed", and what the change means for players or dataminers.
+3. For strings dumps, schemas and asset lists, an identifier table with one row per added or removed name that passed the check: `| name | file | new / removed | other games | what it is |`. Fill "what it is" for every row from evidence: its UI label or description, its neighbouring strings (`DumpStrings -binary`), or related data. Never group names in one row.
+4. Findings, each as a draft comment line following "Writing", ready to paste: one line per change, never a list of names under one heading. A catch-all line ("other: …", "misc: …") is not a draft line: split it into a line per change. Evidence strength sets the wording ("strings suggest …", "only in server strings"), never whether a line exists: a name that passed the check gets its own line even when strings are the only evidence. Under each line, indented: the evidence lines, the check command and its output for every "new" and "removed", and what the change means for players or dataminers.
 
 The notes are for the writer, who never sees the diff, so be generous under each draft line: the English text that describes it, related values in the same block, what existed before, and how it connects to other changes you saw. The writer trims; it can't add what you left out.
 
@@ -15,19 +16,21 @@ Your reply is only the STATUS block and the notes path.
 
 **Meaning.** Describe a mechanic from the game's English description and its data together, never from a property or class name alone. Before calling a system removed or reworked, find what replaces it at `<sha>` and what existed alongside it at `<prev>`, and describe the change as players see it.
 
+**Other games.** For every finding in shared engine files (`game/bin/`, `game/core/`, and schemas, convars, commands, network and protobufs that aren't specific to this game), check the other games' repos all at once with the Toolbox's other-games check, not one grep per name. For each system you report that another game has, find the build that added it with one `git -C <repo> log --since='2 months ago' --format='%h %s' -S '<name>' | tail -1` on a representative name, and note "also in <game> <build>"; otherwise note "only in this game". Identifiers that belong to other games or unannounced projects (other games' names and class prefixes, entities and tool features this game doesn't use) are always a finding, whether or not another repo already has them.
+
 **By area:**
 - **Build files:** `steam.inf`, `manifests/`, `files.json`. A depot file that changed but whose content isn't tracked (a map VPK, a binary) is still a finding: name it.
 - **DumpSource2 convars, commands, network, entities, protobufs:** diff them, quoting changed convar flags verbatim, old next to new. Diff network, entities and protobufs at the field and enum-value level, in existing classes too.
 - **DumpSource2 schemas:** diff at the field and enum-value level, in existing classes too. For each added field, include its default (`// = N`) and description.
-- **Game data** (decompiled data files): don't read line diffs, however small: their context lines can't show which block a value belongs to. Flatten both versions and diff the flattened lines (Toolbox). A path only on the new side is a value newly set in data, not a new property: its old value was the schema default, so look it up (Toolbox) and report `default → value`. The property is new only when the check finds its name nowhere at `<prev>`. When you mention a block, report every property that changed in it. A new block can be the only evidence of new content.
+- **Game data** (decompiled data files): don't read line diffs or write your own parser, however small the change: line diffs can't show which block a value belongs to. Flatten both versions with the Toolbox command and diff the flattened lines. A path only on the new side is a value newly set in data, not a new property: its old value was the schema default, so look it up (Toolbox) and report `default → value`. The property is new only when the check finds its name nowhere at `<prev>`. When you mention a block, report every property that changed in it. A new block can be the only evidence of new content.
 - **Localization:** diff the English files fully. Other languages are catch-ups unless they add keys English lacks.
 - **UI and other decompiled text:** read every diff to the end. A reworked, added or removed panel or system is a finding; cosmetic tweaks get a few words.
-- **Asset lists:** set-diff them (Toolbox). CRC-only changes are churn unless strings, convars or schemas show a matching code change. Name every new content folder.
-- **Strings dumps:** set-diff every file after stripping junk bytes, and read the whole result. For `game/bin/`, flag identifiers that belong to other games or unannounced projects, and engine or tool features this game doesn't use; if the other games' repos already have one, say "also in <repo>". Each added or removed identifier that passes the check (an entity class, convar, command, asset or feature name) is its own draft line; related ones may share a line only when they are clearly one feature.
+- **Asset lists:** set-diff them (Toolbox), and name every new content folder. CRC-only changes to models, textures, particles and sounds are churn unless strings, convars or schemas show a matching code change. List new and removed items in full, never as examples. End with one draft line naming every changed script, localization file and map whose content isn't tracked (a CRC change with no decompiled copy in the repo).
+- **Strings dumps:** set-diff every file after stripping junk bytes, and read the whole result. Never drop strings by pattern before the set diff. MSVC type names (`.?AV<Class>@@`, `.?AU<Struct>@@`) are class names: unwrap them, don't discard them as mangled. Every added or removed identifier that passes the check (an entity class, convar, command, asset or feature name) gets a row in the identifier table; draft lines then group rows that are clearly one feature.
 
 ## Toolbox
 
-Prefer one pipeline to per-file loops; spawning `git` per file is slow.
+Prefer one pipeline to per-file loops; spawning `git` per file is slow. History searches (`git log -S`, `-G`) always get a range, like `--since='6 months ago'` (`'2 months ago'` in the other games' repos): over a repo's whole history they take many minutes.
 
 ```
 # set diff of a list file F (VPK list, strings, whitelist)
@@ -48,6 +51,10 @@ while read n; do git grep -a -q -w -F -e "$n" <prev> || echo "$n"; done < $K
 # bulk "new" check for many names (one git grep per name, or -f with hundreds, is far too slow)
 P=$(mktemp); git ls-tree -r --name-only <prev> | grep -E '_strings\.txt$|^DumpSource2/|_english\.txt$' | sed 's|^|<prev>:|' | git cat-file --batch | tr -c 'A-Za-z0-9_' '\n' | sort -u > $P
 sort -u names.txt | comm -23 - $P   # candidates only: confirm each survivor with the check
+
+# other-games check for many names: build each other repo's identifier set once
+O=$(mktemp); git -C <repo> ls-tree -r --name-only HEAD | grep -E '_strings\.txt$|^DumpSource2/|^Protobufs/|\.fgd$' | sed 's|^|HEAD:|' | git -C <repo> cat-file --batch | tr -c 'A-Za-z0-9_' '\n' | sort -u > $O
+sort -u names.txt | comm -12 - $O   # names that repo already has
 ```
 
 Strings files are binary-ish: search them with `git grep -a`, and strip leading junk bytes before set-diffing (`sed -E 's/^[^A-Za-z_#]+//'`). Junk bytes can be letters too, so a name removed and re-added with a different stray prefix is unchanged. Strings dumps are sorted, which loses context: `<tools>/DumpStrings -binary <binary> | grep -n -C8 -F '<name>'` on this build's downloaded binary (ignored by git, listed in `files.json`; don't open the partial VPKs) shows a string's neighbours, which often reveals its feature. Use it to confirm, not to find, since the previous build's binaries aren't there.

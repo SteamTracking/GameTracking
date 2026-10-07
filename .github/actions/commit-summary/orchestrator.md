@@ -31,8 +31,8 @@ Build numbers can repeat or go backwards. When walking back, skip commits withou
 9. The shared engine and tool strings dumps, under `game/bin/`
 10. Anything else
 
-Split an area across workers when it is more than one can read to the end (over ~20 files, or ~300 changed lines after set-diffing), each with an exclusive file list. Workers are cheap; a skimmed area is not.
+Split an area across workers when it is more than one can read to the end (over ~20 files, or ~300 changed lines after set-diffing), each with an exclusive file list. Strings dumps split by binary: one with thousands of changed lines gets a worker of its own, small ones share. Workers are cheap; a skimmed area is not, and the slowest worker sets the run's length.
 
-**4. Finish the remaining work.** Every worker replies with its `STATUS` block and the path of its notes. Spawn follow-up workers, in one message, for each path under `UNACCOUNTED`, each name under `UNCHECKED`, each `LEAD`, and each name two areas describe differently (such as a property one worker calls new while another lists it with a schema default). Repeat until every STATUS block is clean. Follow-ups finish work; they don't re-check what is clean.
+**4. Finish the remaining work.** Every worker replies with its `STATUS` block and the path of its notes. Spawn follow-up workers, in one message, for each path under `UNACCOUNTED`, each name under `UNCHECKED`, each `LEAD`, and each name two areas describe differently (such as a property one worker calls new while another lists it with a schema default). A follow-up task gives an area name for its own notes file, like the first ones. Repeat until every STATUS block is clean. Follow-ups finish work; they don't re-check what is clean.
 
 **5. Write.** Spawn one writer (`subagent_type: writer`, `run_in_background: false`) with `<prev>` and the commit's classification, and wait for it. It writes the comment file from the notes. Don't change the file after it.

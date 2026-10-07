@@ -17,27 +17,27 @@ inputs:
 runs:
     using: composite
     steps:
-        # Older builds are needed for revert checks and "is this new" lookups
+        # Older builds are needed for revert checks and "is this new" lookups, history searches in the prompt are limited to the same six months
         - name: Fetch older builds
           shell: bash
           working-directory: tracked_game
-          run: git fetch --quiet --deepen=30 origin
+          run: git fetch --quiet --shallow-since="6 months ago" origin
 
-        # Latest state of the other Source 2 games, to spot shared engine changes
+        # Other Source 2 games with recent history, to spot shared engine changes and when they first appeared
         - name: Clone GameTracking-CS2
           if: github.repository != 'SteamTracking/GameTracking-CS2'
           shell: bash
-          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-CS2.git "$GITHUB_WORKSPACE/siblings/GameTracking-CS2"
+          run: git clone --quiet --shallow-since="2 months ago" https://github.com/SteamTracking/GameTracking-CS2.git "$GITHUB_WORKSPACE/siblings/GameTracking-CS2"
 
         - name: Clone GameTracking-Dota2
           if: github.repository != 'SteamTracking/GameTracking-Dota2'
           shell: bash
-          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-Dota2.git "$GITHUB_WORKSPACE/siblings/GameTracking-Dota2"
+          run: git clone --quiet --shallow-since="2 months ago" https://github.com/SteamTracking/GameTracking-Dota2.git "$GITHUB_WORKSPACE/siblings/GameTracking-Dota2"
 
         - name: Clone GameTracking-Deadlock
           if: github.repository != 'SteamTracking/GameTracking-Deadlock'
           shell: bash
-          run: git clone --quiet --depth=1 https://github.com/SteamTracking/GameTracking-Deadlock.git "$GITHUB_WORKSPACE/siblings/GameTracking-Deadlock"
+          run: git clone --quiet --shallow-since="2 months ago" https://github.com/SteamTracking/GameTracking-Deadlock.git "$GITHUB_WORKSPACE/siblings/GameTracking-Deadlock"
 
         # The main session orchestrates, worker agents read the diff and a writer agent turns their notes into the comment
         - name: Prepare prompts
@@ -52,9 +52,9 @@ runs:
 
             run=$(
               echo '## This run'
-              echo "- The game repository is checked out at \`$workspace/tracked_game\`; run git as \`git -C <that path> …\`."
+              echo "- The game repository is checked out at \`$workspace/tracked_game\` with its last six months of history; run git as \`git -C <that path> …\`."
               echo '- The commit to summarise is `<sha>` = `${{ inputs.sha }}`.'
-              echo "- Repos of the other games are checked out at their latest commit under \`$workspace/siblings/\`."
+              echo "- Repos of the other games are checked out at their latest commit under \`$workspace/siblings/\`, with their last two months of history."
               echo "- \`<tools>\` is \`$tools\`."
               echo "- \`<notes>\` is \`$notes\`."
               echo "- The comment body (or \`NO_COMMENT\`) goes to \`$out\`, this exact absolute path, and only the writer writes it. Apart from that file, notes and temp files from \`mktemp\`, nobody writes anything. Only that file is posted, not the final reply."
@@ -123,6 +123,10 @@ runs:
               --output-format stream-json \
               --verbose < /dev/null > "$RUNNER_TEMP/commit_summary_transcript.jsonl"
             jq -r 'select(.type == "result") | .result' "$RUNNER_TEMP/commit_summary_transcript.jsonl" | tee -a "$GITHUB_STEP_SUMMARY"
+          # Set-diffing big string dumps can take minutes, so commands get longer than the default 2 minute timeout
+          env:
+            BASH_DEFAULT_TIMEOUT_MS: '600000'
+            BASH_MAX_TIMEOUT_MS: '1800000'
 
         - name: Upload transcript
           if: always()

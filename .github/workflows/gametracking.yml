@@ -126,7 +126,7 @@ jobs:
           shell: bash
           run: |
             . ../common.sh
-            $STEAM_FILE_DOWNLOADER_PATH --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-all-manifests' || '' }}
+            $STEAM_FILE_DOWNLOADER_PATH track --username "${{ secrets.STEAM_USERNAME }}" --password "${{ secrets.STEAM_PASSWORD }}" --appid "${{ inputs.appid }}" --output . --branch "${{ inputs.branch }}" ${{ inputs.save-manifest && '--save-all-manifests' || '' }}
 
         - name: Run update script
           working-directory: ${{ github.workspace }}/tracked_game
@@ -197,7 +197,7 @@ jobs:
         - name: Summarize commit
           if: ${{ env.CLAUDE_CODE_OAUTH_TOKEN != '' && steps.set-status.outputs.sha && steps.before.outputs.sha != steps.set-status.outputs.sha }}
           continue-on-error: true
-          timeout-minutes: 60
+          timeout-minutes: 120
           uses: ./.github/actions/commit-summary
           with:
             sha: ${{ steps.set-status.outputs.sha }}

@@ -13,7 +13,7 @@ Each game has its own repository (e.g. [GameTracking-Dota2](https://github.com/S
 
 When a game update is detected, the game repository's workflow calls the reusable workflow in this repository, which checks out both repos, builds the tools, downloads the relevant game files using [SteamFileDownloader](https://github.com/SteamTracking/SteamFileDownloader) based on the game's `files.json`, and runs the game's `update.sh`.
 
-SteamFileDownloader is a lightweight depot downloader that downloads files normally, but for pak01 VPKs it only downloads the chunks actually needed to export the requested file extensions.
+SteamFileDownloader is a lightweight depot downloader that downloads files normally, but for entries inside VPKs (`<path>_dir.vpk:<entry>` in `files.json`) it only downloads the chunks that hold them.
 
 ### Tools
 
