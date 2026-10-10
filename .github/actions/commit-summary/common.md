@@ -41,7 +41,7 @@ For a dataminer skimming a feed:
 **Also:** <terse minor changes; omit if none>
 ```
 
-- The first line names the most notable changes, or the commit type (a revert or a dump re-run, citing other commits by SHA). No build numbers or versions.
+- The first line names the most notable changes, or the commit type (a rollback, a re-release of a rolled-back build or a dump re-run, citing other commits by SHA). No build numbers or versions.
 - Shared engine changes that another game already has go in one short `### Engine update` section: a line per system with "also in <game> <build>", and no detail. What only this game has gets its own lines in full.
 - Identifiers from other games or unannounced projects get their own section.
 - Let the number of real changes decide the length, not the detail per change. Skip sections when there are only a few changes.

@@ -10,10 +10,11 @@ git log -1 --format='%h %s' <sha> | cut -d'|' -f1-2
 git diff <sha>~1 <sha> -- 'game/*/steam.inf' | grep '^[-+][A-Z]'
 git diff --shortstat <sha>~1 <sha>
 git diff --dirstat=files,0 <sha>~1 <sha>
+for c in $(git log -8 --format=%h <sha>~2); do echo "$c $(git log -1 --format=%s $c | cut -d'|' -f1)$(git diff --shortstat $c <sha>)"; done
 ```
 `<prev>` is `<sha>~1`, unless:
 - **steam.inf unchanged:** the tracker changed something. Report only what dataminers can newly read, otherwise `NO_COMMENT`. Exception: a manual DumpSource2 re-run after the dumper failed. Summarise it as the parent's build, with `<prev>` = the build before the parent.
-- **Revert:** if the diff seems to undo earlier builds, compare `git diff --shortstat <sha>~N <sha>` for a few N. A much smaller one means this commit returns to that build: use it as `<prev>` and report only what still differs.
+- **Return to an earlier build:** an older build whose diff to `<sha>` is much smaller than the parent's means this commit returns to it. That is a rollback when the builds in between are undone, and a re-release when the parent was a rollback of that build. Use it as `<prev>` and report only what still differs.
 
 Build numbers can repeat or go backwards. When walking back, skip commits without a build number in their subject: they are tracker changes, not builds.
 
