@@ -218,6 +218,7 @@ jobs:
                 GH_TOKEN: ${{ secrets.DISPATCH_TOKEN_SOURCE2WIKI }}
 
         - name: Summarize commit
+          id: summary
           if: ${{ (env.ANTHROPIC_FEDERATION_RULE_ID != '' || env.CLAUDE_CODE_OAUTH_TOKEN != '') && steps.set-status.outputs.sha && steps.before.outputs.sha != steps.set-status.outputs.sha }}
           continue-on-error: true
           timeout-minutes: 120
@@ -230,7 +231,7 @@ jobs:
             ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ secrets.ANTHROPIC_SERVICE_ACCOUNT_ID }}
             CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-        - name: Fail if update script failed
-          if: ${{ steps.update.outcome == 'failure' }}
+        - name: Fail if update script or commit summary failed
+          if: ${{ steps.update.outcome == 'failure' || steps.summary.outcome == 'failure' }}
           run: exit 1
 

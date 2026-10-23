@@ -18,10 +18,11 @@ runs:
     using: composite
     steps:
         # Older builds are needed for revert checks and "is this new" lookups, history searches in the prompt are limited to the same six months
+        # Only the checked out branch, because the server fails the whole fetch when another branch has no commits inside the window
         - name: Fetch older builds
           shell: bash
           working-directory: tracked_game
-          run: git fetch --quiet --shallow-since="6 months ago" origin
+          run: git fetch --quiet --shallow-since="6 months ago" origin "$(git branch --show-current)"
 
         # Other Source 2 games with recent history, to spot shared engine changes and when they first appeared
         - name: Clone GameTracking-CS2
