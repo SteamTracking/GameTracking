@@ -139,6 +139,7 @@ jobs:
         - name: Set commit status
           if: always() && steps.before.outputs.sha
           id: set-status
+          continue-on-error: true
           working-directory: ${{ github.workspace }}/tracked_game
           shell: bash
           run: |
@@ -197,6 +198,7 @@ jobs:
         - name: Create Protobufs token
           id: protobufs-token
           if: ${{ github.repository_owner == 'SteamTracking' && github.ref_name == github.event.repository.default_branch }}
+          continue-on-error: true
           uses: actions/create-github-app-token@v3
           with:
             client-id: ${{ secrets.STEAMTRACKING_APP_CLIENT_ID }}
@@ -207,12 +209,14 @@ jobs:
 
         - name: Dispatch sync to ValveProtobufs
           if: ${{ github.repository_owner == 'SteamTracking' && github.ref_name == github.event.repository.default_branch }}
+          continue-on-error: true
           run: gh api repos/SteamTracking/Protobufs/dispatches -f event_type=sync
           env:
                 GH_TOKEN: ${{ steps.protobufs-token.outputs.token }}
 
         - name: Dispatch app-update to Source2Wiki
           if: ${{ inputs.dispatch-source2wiki && env.GH_TOKEN != '' && github.ref_name == github.event.repository.default_branch && steps.before.outputs.sha != steps.set-status.outputs.sha }}
+          continue-on-error: true
           run: gh api repos/Source2Wiki/Source2Wiki/dispatches -f event_type=app-update -F "client_payload[owner]={owner}" -F "client_payload[repo]={repo}"
           env:
                 GH_TOKEN: ${{ secrets.DISPATCH_TOKEN_SOURCE2WIKI }}
