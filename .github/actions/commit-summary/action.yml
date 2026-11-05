@@ -113,7 +113,6 @@ runs:
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
         # Tries Workload Identity Federation first and runs again with CLAUDE_CODE_OAUTH_TOKEN when it is not set up or fails.
-        # The transcripts and the workers' notes are kept as an artifact, so skipped steps can be audited
         - name: Run Claude Code
           shell: bash
           run: bash "$GITHUB_ACTION_PATH/run_claude.sh" "${{ inputs.model }}"
@@ -121,18 +120,6 @@ runs:
           env:
             BASH_DEFAULT_TIMEOUT_MS: '600000'
             BASH_MAX_TIMEOUT_MS: '1800000'
-
-        - name: Upload transcript
-          if: always()
-          uses: actions/upload-artifact@v7
-          with:
-            name: commit-summary-transcript
-            path: |
-              ${{ runner.temp }}/commit_summary_transcript_*.jsonl
-              ${{ runner.temp }}/commit_summary_notes/
-              ${{ runner.temp }}/commit_summary_notes_wif/
-            if-no-files-found: ignore
-            retention-days: 7
 
         - name: Post comment
           shell: bash

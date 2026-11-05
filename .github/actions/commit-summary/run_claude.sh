@@ -47,13 +47,14 @@ if [[ -n "$ANTHROPIC_FEDERATION_RULE_ID" && -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]
 		refresher=$!
 
 		# CLAUDE_CODE_OAUTH_TOKEN takes precedence over federation credentials
-		if (unset CLAUDE_CODE_OAUTH_TOKEN; run_claude wif) && succeeded wif; then
+		# Only the refresher needs the runner's tokens, Claude Code reads the identity token file
+		if (unset CLAUDE_CODE_OAUTH_TOKEN "${!ACTIONS_@}"; run_claude wif) && succeeded wif; then
 			used=wif
 		else
 			echo "::warning::Workload Identity Federation run failed, running again with CLAUDE_CODE_OAUTH_TOKEN: $(result wif | tail -n 1)"
 
-			# Notes of the failed run are kept for the artifact but must not be picked up by the rerun
-			mv "$RUNNER_TEMP/commit_summary_notes" "$RUNNER_TEMP/commit_summary_notes_wif"
+			# Notes of the failed run must not be picked up by the rerun
+			rm -rf "$RUNNER_TEMP/commit_summary_notes"
 			mkdir -p "$RUNNER_TEMP/commit_summary_notes"
 		fi
 
@@ -71,7 +72,7 @@ if [[ -z "$used" ]]; then
 
 	rm -f "$GITHUB_WORKSPACE/commit_summary.md"
 	used=oauth
-	(unset ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_IDENTITY_TOKEN_FILE; run_claude oauth)
+	(unset ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_IDENTITY_TOKEN_FILE "${!ACTIONS_@}"; run_claude oauth)
 fi
 
 echo "Authenticated with: $used" >> "$GITHUB_STEP_SUMMARY"

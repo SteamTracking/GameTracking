@@ -132,7 +132,9 @@ jobs:
           continue-on-error: true
           working-directory: ${{ github.workspace }}/tracked_game
           shell: bash
-          run: ./update.sh
+          run: |
+            unset "${!ACTIONS_@}"
+            ./update.sh
 
         # Post-processing
 
