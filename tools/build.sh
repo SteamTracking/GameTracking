@@ -64,7 +64,7 @@ BuildDumpSource2 ()
 	cd "$TOOLS_DIR/DumpSource2"
 	#[[ -d build ]] && rm -r build
 	mkdir -p build
-	cmake -B build -S .
+	cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 	cmake --build build --parallel 4 --config Release
 	echo "::endgroup::"
 }
