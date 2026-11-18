@@ -12,6 +12,8 @@ GameTracking repos track a game's files under `game/` and the dumps made from th
 
 Do not change the repo. The working tree is at `<sha>`. Read older builds with `git show <prev>:<path>`. You can make temp files with `mktemp`.
 
+**Reading.** Tools cut their output at about 30,000 characters, without a warning. Write large output to a temp file and read it in slices (`sed -n '1,400p'`, then the next range). Never filter a file or diff that you did not read.
+
 ## Rules for findings
 
 - **Report changes to the game, not to the files.** These are noise:
@@ -47,9 +49,9 @@ Do not change the repo. The working tree is at `<sha>`. Read older builds with `
 ## Writing
 
 The reader is a dataminer who skims a feed.
-- Write one bullet per change, in plain English that reads correctly the first time.
+- Write one bullet per change, in plain English that reads correctly the first time. Never write a catch-all bullet ("smaller changes to …", "and more", "and others").
 - Name things. Do not describe files: no sizes, CRCs, hashes, versions, build dates or counts. Never count the members of a list ("32 traits"): list them. Game values are fine.
-- Keep each bullet under ~200 characters. Never use semicolons.
+- Keep each bullet under ~200 characters by splitting it, never by dropping values. Never use semicolons.
 - Give each item, hero, ability and unit its own bullet. Put its changed values in indented sub-bullets, one per value or group of values. Never pack the values of several items into one bullet.
 - Give each change what a dataminer needs: the name, old → new values, convar defaults and flags, key strings, and the mechanics that the data shows.
 - Leave implementation detail out of a bullet, unless it is the evidence. Examples are internal keys and flags of game data (`add_nostack_debuff`), search aliases, internal UI and style names, layout values, editor features and key bindings, audio settings, full paths, enum numbers, and descriptions that repeat the bullet. This rule makes bullets shorter. It never removes a bullet.
@@ -86,5 +88,5 @@ Otherwise write only the comment body:
 - The first line has no build numbers or versions, and no labels like "Small update:" or "Minor content update:".
 - Engine and tool changes come first, before the sections about this game. Write a system that only this game has in full, under `### Engine and tools`. A system that another game already has goes under `### Shared engine update`, as one bullet with "also in <game>" and no detail.
 - Put identifiers from other games or unannounced projects in their own section.
-- The number of real changes sets the length, not the detail per change.
+- Never leave out a change or its values to make the comment shorter. A long comment is posted in several parts.
 - With only a few changes, use no headings: put the bullets under the first line. Leave out a bullet that only repeats the first line.

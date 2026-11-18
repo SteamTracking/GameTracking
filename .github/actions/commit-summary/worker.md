@@ -9,7 +9,7 @@ You cover one area of the commit. Your task names the area and gives its file li
    - its neighbouring strings (`DumpStrings dump`)
    - related data
 3. Findings. Write each finding as a draft comment line that follows "Writing" and is ready to paste. Draft lines group the table rows that are clearly one feature.
-   - A list of names under one heading, or a catch-all line ("other: …", "misc: …"), is not a draft line. Split it into one line per change.
+   - A list of names under one heading is not a draft line. Split it into one line per change.
    - Evidence strength sets the wording, never whether a line exists. A name that passed the check gets its own line, even when strings are the only evidence.
    - The notes never say whether a finding is worth the comment.
    - Under each line, indent the evidence lines. For every "new", "removed", "also in <game>" and "only in this game", add the check command and its output. Add what the change means for players or dataminers.
@@ -30,8 +30,6 @@ The writer never sees the diff and reads only your notes. So give generous detai
 The writer removes detail. It cannot add what you left out.
 
 Your reply is only the STATUS block and the notes path.
-
-**Reading.** Tools cut their output at about 30,000 characters, without a warning. Write large output to a temp file and read it in slices (`sed -n '1,400p'`, then the next range). Never filter a diff that you did not read.
 
 **Meaning.** Before you call a system removed or reworked, find what replaces it at `<sha>` and what existed next to it at `<prev>`. Describe the change as players see it.
 
@@ -63,7 +61,7 @@ Your reply is only the STATUS block and the notes path.
 
 ## Toolbox
 
-Prefer one pipeline to a loop over files. A `git` process per file is slow. Always give history searches (`git log -S`, `-G`) a range, like `--since='6 months ago'` (`'2 months ago'` in the repos of the other games), and a path (`-- <file>`). Find the file with `git grep -l` first. Without a path, a history search reads every changed file of every commit, the strings dumps included, and takes many minutes.
+Never run a command per name, line or file of a large set (`for n in …`, `while read`). Use one pipeline over the whole set (`grep -F -f`, `comm`, `awk`, `git cat-file --batch`). Always give history searches (`git log -S`, `-G`) a range, like `--since='6 months ago'` (`'2 months ago'` in the repos of the other games), and a path (`-- <file>`). Find the file with `git grep -l` first. Without a path, a history search reads every changed file of every commit, the strings dumps included, and takes many minutes.
 
 ```
 # set diff of a list file F (VPK list, strings, whitelist)

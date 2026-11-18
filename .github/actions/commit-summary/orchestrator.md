@@ -46,4 +46,6 @@ Start follow-up workers in rounds, one message per round. Give one worker to eac
 
 Before each round, compare `date -u +%H:%M` with the time from step 1. Start another round only while paths stay `UNACCOUNTED` and the writer still has time after it. Then go to step 5.
 
-**5. Write.** Start one writer (`subagent_type: writer`) with `<prev>` and the classification of the commit, and wait for it. It writes the comment file from the notes. Do not change the file after it. Your final reply names each path that the writer reports as still `UNACCOUNTED`.
+**5. Write.** Start one writer (`subagent_type: writer`) with `<prev>` and the classification of the commit, and wait for it. It writes the comment file from the notes. Do not change the file yourself.
+
+Then compare the coverage file with the draft lines of every notes file. While time allows, send the writer back with `SendMessage` for each draft line that has no row, or whose row is wrong, and wait for its reply. Your final reply names each path that the writer reports as still `UNACCOUNTED`.

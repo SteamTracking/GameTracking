@@ -24,8 +24,9 @@ run_claude() {
 	return "${PIPESTATUS[0]}"
 }
 
+# Last non-empty result, as turns that resume after background agents each report one
 result() {
-	jq -r 'select(.type == "result") | .result' "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl"
+	jq -nr 'last(inputs | select(.type == "result" and (.result // "") != "")) | .result // empty' "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl"
 }
 
 # Failed runs still report subtype "success", only is_error tells them apart
