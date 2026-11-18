@@ -30,7 +30,7 @@ result() {
 
 # Failed runs still report subtype "success", only is_error tells them apart
 succeeded() {
-	jq -se 'any(.[]; .type == "result" and .is_error == false)' "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl" > /dev/null
+	jq -e 'select(.type == "result" and .is_error == false)' "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl" > /dev/null
 }
 
 fetch_identity_token() {
@@ -45,9 +45,7 @@ if [[ -n "$ANTHROPIC_FEDERATION_RULE_ID" && -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]
 
 	if fetch_identity_token; then
 		# The claims the federation rule matches against
-		payload=$(cut -d. -f2 < "$ANTHROPIC_IDENTITY_TOKEN_FILE" | tr '_-' '/+')
-		while (( ${#payload} % 4 )); do payload+='='; done
-		base64 -d <<< "$payload" | jq -r '"Identity token sub: \(.sub)\nIdentity token job_workflow_ref: \(.job_workflow_ref)"'
+		jq -Rr 'split(".")[1] | gsub("-"; "+") | gsub("_"; "/") | @base64d | fromjson | "Identity token sub: \(.sub)\nIdentity token job_workflow_ref: \(.job_workflow_ref)"' "$ANTHROPIC_IDENTITY_TOKEN_FILE"
 
 		# GitHub identity tokens expire after about five minutes and each can be exchanged only once,
 		# so a fresh one is written every minute for Claude Code to exchange when its access token expires
@@ -86,7 +84,8 @@ fi
 
 echo "Authenticated with: $used" >> "$GITHUB_STEP_SUMMARY"
 
-# Disable workflow commands while printing the result, the token is made after the result exists
+# Disable workflow commands in the printed result
+# The token is made after the result exists, so the result cannot contain it
 stop_token=$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')
 echo "::stop-commands::$stop_token"
 result "$used" | tee -a "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,4 @@
 # Prints agent starts and finishes and every tool call from a Claude Code stream-json transcript
-# Run as: jq -nR --unbuffered -r -f progress.jq
 
 # First line only, as the runner also splits lines at a bare \r and parses lines starting with :: as workflow commands
 def clip($n): tostring | sub("[\r\n][\\s\\S]*"; "") | gsub("[[:cntrl:]]"; " ") | if length > $n then .[:$n] + "..." else . end;
@@ -9,7 +8,7 @@ def is_agent: .name == "Agent" or .name == "Task";
 # Most telling input field of a tool call
 def summary: .command // .file_path // .pattern // .path // .url // .description // "" | clip(150);
 
-foreach (inputs | fromjson? // empty | objects) as $event ({agents: {}, out: []};
+foreach (inputs | fromjson? | objects) as $event ({agents: {}, out: []};
 	.out = []
 	| if $event.type == "assistant" then
 		reduce ($event.message.content[]? | select(.type == "tool_use")) as $use (.;
