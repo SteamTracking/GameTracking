@@ -48,14 +48,15 @@ Do not change the repo. The working tree is at `<sha>`. Read older builds with `
 
 The reader is a dataminer who skims a feed.
 - Write one bullet per change, in plain English that reads correctly the first time.
-- Name things. Do not describe files: no sizes, CRCs, hashes, versions, build dates or counts. Game values are fine.
-- Keep each bullet short. Do not join facts with semicolons. When a change has several groups of facts (stats, upgrades, values), give each group an indented sub-bullet.
+- Name things. Do not describe files: no sizes, CRCs, hashes, versions, build dates or counts. Never count the members of a list ("32 traits"): list them. Game values are fine.
+- Keep each bullet under ~200 characters. Never use semicolons.
+- Give each item, hero, ability and unit its own bullet. Put its changed values in indented sub-bullets, one per value or group of values. Never pack the values of several items into one bullet.
 - Give each change what a dataminer needs: the name, old → new values, convar defaults and flags, key strings, and the mechanics that the data shows.
-- Leave implementation detail out of a bullet, unless it is the evidence. Examples are internal UI and style names, layout values, audio settings, full paths, enum numbers, and descriptions that repeat the bullet. This rule makes bullets shorter. It never removes a bullet.
+- Leave implementation detail out of a bullet, unless it is the evidence. Examples are internal keys and flags of game data (`add_nostack_debuff`), search aliases, internal UI and style names, layout values, editor features and key bindings, audio settings, full paths, enum numbers, and descriptions that repeat the bullet. This rule makes bullets shorter. It never removes a bullet.
 - `→` marks a changed value. Give new content as plain values or ranges. Write timestamps in game data as dates.
 - Name a changed file whose content is not tracked (a map, a script, a localization file), in plain words: "map `dl_midtown` changed". Rebuilt binaries, `.signatures` and tool asset caches are recompiles. Never name them.
 - Write about the game, not about the repo or the analysis. Do not write "content not tracked", "no readable copy in the repo" or "a code change can't be ruled out". Say what did not change only when that is the point, in a few words ("text only, item data unchanged").
-- Give lists of new or removed items in full, never as examples. If a set is too long to list, name its folder and its purpose. Never count it.
+- Give lists of new or removed items in full, never as examples. If a set is too long to list, name its folder and its purpose.
 - Mark each inference once, with one word ("inferred"). Do not stack hedges ("presumably …, inferred").
 - Write impersonally. Never write "I".
 
@@ -68,8 +69,11 @@ Otherwise write only the comment body:
 ```
 <one short sentence, under ~120 chars>
 
-### Engine update
-- <one shared engine system per bullet; omit the section if none>
+### Engine and tools
+- <one engine or tool system that only this game has per bullet; omit the section if none>
+
+### Shared engine update
+- <one engine or tool system that another game already has per bullet; omit the section if none>
 
 ### <Feature group>
 - …
@@ -80,7 +84,7 @@ Otherwise write only the comment body:
 
 - The first line names the most notable changes or the commit type. Commit types are a rollback, a re-release of a rolled-back build, or a dump re-run. For these, give the SHAs of the related commits.
 - The first line has no build numbers or versions, and no labels like "Small update:" or "Minor content update:".
-- Put shared engine changes that another game already has in one short `### Engine update` section. This section comes first, before the sections about this game. Write one bullet per system with "also in <game> <build>", and no detail. Write the changes that only this game has in full, in their own bullets.
+- Engine and tool changes come first, before the sections about this game. Write a system that only this game has in full, under `### Engine and tools`. A system that another game already has goes under `### Shared engine update`, as one bullet with "also in <game>" and no detail.
 - Put identifiers from other games or unannounced projects in their own section.
 - The number of real changes sets the length, not the detail per change.
 - With only a few changes, use no headings: put the bullets under the first line. Leave out a bullet that only repeats the first line.
