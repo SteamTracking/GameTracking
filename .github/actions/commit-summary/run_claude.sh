@@ -7,13 +7,21 @@ set -o pipefail
 
 model=$1
 
+# Prints progress from the transcript stream
+# Drains the rest of the stream if jq stops, so tee still writes the whole transcript
+progress() {
+	jq -nR --unbuffered -r -f "$GITHUB_ACTION_PATH/progress.jq"
+	cat > /dev/null
+}
+
 run_claude() {
 	claude -p "$(cat "$RUNNER_TEMP/commit_summary_prompt.md")" \
 		--model "$model" \
 		--agents "$RUNNER_TEMP/commit_summary_agents.json" \
 		--permission-mode auto \
 		--output-format stream-json \
-		--verbose < /dev/null > "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl"
+		--verbose < /dev/null | tee "$RUNNER_TEMP/commit_summary_transcript_$1.jsonl" | progress
+	return "${PIPESTATUS[0]}"
 }
 
 result() {
@@ -51,7 +59,8 @@ if [[ -n "$ANTHROPIC_FEDERATION_RULE_ID" && -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]
 		if (unset CLAUDE_CODE_OAUTH_TOKEN "${!ACTIONS_@}"; run_claude wif) && succeeded wif; then
 			used=wif
 		else
-			echo "::warning::Workload Identity Federation run failed, running again with CLAUDE_CODE_OAUTH_TOKEN: $(result wif | tail -n 1)"
+			# The runner also ends a line at a bare \r, which would let the result start a workflow command
+			echo "::warning::Workload Identity Federation run failed, running again with CLAUDE_CODE_OAUTH_TOKEN: $(result wif | tail -n 1 | tr '\r' ' ')"
 
 			# Notes of the failed run must not be picked up by the rerun
 			rm -rf "$RUNNER_TEMP/commit_summary_notes"
@@ -76,4 +85,9 @@ if [[ -z "$used" ]]; then
 fi
 
 echo "Authenticated with: $used" >> "$GITHUB_STEP_SUMMARY"
+
+# Disable workflow commands while printing the result, the token is made after the result exists
+stop_token=$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')
+echo "::stop-commands::$stop_token"
 result "$used" | tee -a "$GITHUB_STEP_SUMMARY"
+echo "::$stop_token::"
