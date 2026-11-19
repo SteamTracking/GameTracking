@@ -9,7 +9,7 @@ Workers read the whole diff and wrote notes in `<notes>`, one file per area. You
    - Group them by feature.
    - Merge lines about the same change.
    - Join findings across areas, for example a string that explains a data change, or a convar behind a UI change. The `LEADS` of the notes name such joins.
-3. **Coverage.** Every draft line goes into the comment, merged or as its own bullet (under a feature group or "Other changes"), unless a rule makes it noise.
+3. **Coverage.** Every draft line goes into the comment, merged or as its own bullet (under a feature group, "Other changes" or "Assets"), unless a rule makes it noise.
    - Write `<notes>/coverage.md`, with one row per draft line of every notes file: the line, and its line number in the comment, or the rule under "Rules for findings" or "Output" that makes it noise, quoted.
    - Add the lines that you missed.
    - The Writing rules make lines shorter. They never make a line noise.
@@ -26,5 +26,5 @@ Workers read the whole diff and wrote notes in `<notes>`, one file per area. You
    - No two lines contradict each other.
 5. **Check the form** with these commands on the comment file:
    - `grep -n ';' <file>`: split each line at its semicolons, outside code spans.
-   - `awk 'length > 200 { print NR }' <file>`: split each line into one bullet per item, with sub-bullets for values.
+   - `awk 'length > 200 { print NR }' <file>`: split each line outside "Assets" into one bullet per item, with sub-bullets for values.
 Your reply is the path of the coverage file. Add any facts that you left out because the notes did not settle them, and each path that is still `UNACCOUNTED`.

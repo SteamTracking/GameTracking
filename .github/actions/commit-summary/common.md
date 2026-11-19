@@ -56,7 +56,7 @@ The reader is a dataminer who skims a feed.
 - Give each change what a dataminer needs: the name, old → new values, convar defaults and flags, key strings, and the mechanics that the data shows.
 - Leave implementation detail out of a bullet, unless it is the evidence. Examples are internal keys and flags of game data (`add_nostack_debuff`), search aliases, internal UI and style names, layout values, editor features and key bindings, audio settings, full paths, enum numbers, and descriptions that repeat the bullet. This rule makes bullets shorter. It never removes a bullet.
 - `→` marks a changed value. Give new content as plain values or ranges. Write timestamps in game data as dates.
-- Name a changed file whose content is not tracked (a map, a script, a localization file), in plain words: "map `dl_midtown` changed". Rebuilt binaries, `.signatures` and tool asset caches are recompiles. Never name them.
+- Name a changed file whose content is not tracked (a script, a localization file), in plain words. Name all changed maps in one bullet: "Maps changed: `dota`, `dota_winter`". Rebuilt binaries, `.signatures` and tool asset caches are recompiles. Never name them.
 - Write about the game, not about the repo or the analysis. Do not write "content not tracked", "no readable copy in the repo" or "a code change can't be ruled out". Say what did not change only when that is the point, in a few words ("text only, item data unchanged").
 - Give lists of new or removed items in full, never as examples. If a set is too long to list, name its folder and its purpose.
 - Mark each inference once, with one word ("inferred"). Do not stack hedges ("presumably …, inferred").
@@ -64,7 +64,7 @@ The reader is a dataminer who skims a feed.
 
 ## Output
 
-Write `NO_COMMENT` if nothing is worth telling a dataminer. This includes a build whose only changes are rebuilt binaries, CRC-only asset changes, tracker noise, translation catch-ups or trivial string edits.
+Write `NO_COMMENT` if nothing is worth telling a dataminer. This includes a build whose only changes are changed maps, rebuilt binaries, CRC-only asset changes, tracker noise, translation catch-ups or trivial string edits.
 
 Otherwise write only the comment body:
 
@@ -82,11 +82,17 @@ Otherwise write only the comment body:
 
 ### Other changes
 - <one minor change per bullet; omit the section if none>
+
+### Assets
+- <the asset names of one hero, item or feature per bullet; omit the section if none>
 ```
 
 - The first line names the most notable changes or the commit type. Commit types are a rollback, a re-release of a rolled-back build, or a dump re-run. For these, give the SHAs of the related commits.
-- The first line has no build numbers or versions, and no labels like "Small update:" or "Minor content update:".
+- The first line has no build numbers or versions, and no labels like "Small update:" or "Minor content update:". It names maps and asset files only when nothing else changed.
 - Engine and tool changes come first, before the sections about this game. Write a system that only this game has in full, under `### Engine and tools`. A system that another game already has goes under `### Shared engine update`, as one bullet with "also in <game>" and no detail.
 - Put identifiers from other games or unannounced projects in their own section.
+- `### Assets` comes last. It holds the lines whose only evidence is an asset list, about things that existed at `<prev>`: changed maps, and assets added, removed or renamed for an existing hero, item, ability or feature.
+  - Write one bullet per hero, item or feature, with all its asset names in one line, without folder or extension. These bullets can be longer than ~200 characters.
+  - Assets of something that is absent at `<prev>` (a hero, item, mode or folder) go in its feature section.
 - Never leave out a change or its values to make the comment shorter. A long comment is posted in several parts.
-- With only a few changes, use no headings: put the bullets under the first line. Leave out a bullet that only repeats the first line.
+- With only a few changes, use no headings: put the bullets under the first line, with the asset bullets last. Leave out a bullet that only repeats the first line.
