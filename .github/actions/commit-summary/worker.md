@@ -10,7 +10,7 @@ You cover one area of the commit. Your task names the area and gives its file li
    - related data
 3. Findings. Write each finding as a draft comment line that follows "Writing" and is ready to paste. Draft lines group the table rows that are clearly one feature.
    - A list of names under one heading is not a draft line. Split it into one line per change.
-   - Evidence strength sets the wording, never whether a line exists. A name that passed the check gets its own line, even when strings are the only evidence.
+   - A name that passed the check gets its own line, even when strings are the only evidence.
    - The notes never say whether a finding is worth the comment.
    - Under each line, indent the evidence lines. For every "new", "removed", "also in <game>" and "only in this game", add the check command and its output. Add what the change means for players or dataminers.
 

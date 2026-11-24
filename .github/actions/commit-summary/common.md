@@ -43,7 +43,7 @@ Do not change the repo. The working tree is at `<sha>`. Read older builds with `
   3. asset lists
   4. binary strings
 
-  When strings are the only evidence, write "strings suggest".
+  When strings are the only evidence, quote the key string and state what it shows. The quote is the evidence: add no "strings suggest", "inferred" or other hedge.
 - **Never call anything a leak, unreleased or upcoming.** State the evidence instead, for example "only in tool binaries" or "no entity dump in this game implements it".
 
 ## Writing
@@ -88,7 +88,7 @@ Otherwise write only the comment body:
 ```
 
 - The first line names the most notable changes or the commit type. Commit types are a rollback, a re-release of a rolled-back build, or a dump re-run. For these, give the SHAs of the related commits.
-- The first line has no build numbers or versions, and no labels like "Small update:" or "Minor content update:". It names maps and asset files only when nothing else changed.
+- The first line has no build numbers, versions or counts, and no labels like "Small update:" or "Minor content update:". It names maps and asset files only when nothing else changed.
 - Engine and tool changes come first, before the sections about this game. Write a system that only this game has in full, under `### Engine and tools`. A system that another game already has goes under `### Shared engine update`, as one bullet with "also in <game>" and no detail.
 - Put identifiers from other games or unannounced projects in their own section.
 - `### Assets` comes last. It holds the lines whose only evidence is an asset list, about things that existed at `<prev>`: changed maps, and assets added, removed or renamed for an existing hero, item, ability or feature.

@@ -21,7 +21,8 @@ Workers read the whole diff and wrote notes in `<notes>`, one file per area. You
    - These are not display names: an internal id made to look like a name (`Bubbling Brew` for `ability_baba_bubbling_brew`), and the names of sound events, assets and icons.
    - Entity classes, convars, commands and asset names stay internal when they are the finding.
    - Quote engine terms and flags as the notes have them.
-   - The evidence wording agrees with the evidence.
+   - No claim goes further than its evidence.
+   - "also in <game>" covers only the names that the check found in that game.
    - The comment obeys "Writing" and "Output".
    - No two lines contradict each other.
 5. **Check the form** with these commands on the comment file:
