@@ -24,7 +24,7 @@ for c in $(git log -8 --format=%h <sha>~2); do echo "$c $(git log -1 --format=%s
 
 Build numbers can repeat or go backwards. When you walk back, skip commits that have no build number in their subject. They are tracker changes, not builds.
 
-**2. Worklist.** Save `git diff --name-status <prev> <sha>` to a temp file.
+**2. Worklist.** Save `git diff --name-status <prev> <sha> -- . ':!DumpSource2/.stringsignore'` to a temp file.
 
 **3. Assign.** Divide the worklist into these areas. Give one worker (`subagent_type: worker`) to each area that is not empty. Never merge two areas.
 1. Build files: `steam.inf`, `manifests/`, `files.json`, binaries

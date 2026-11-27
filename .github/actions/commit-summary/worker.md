@@ -10,7 +10,7 @@ You cover one area of the commit. Your task names the area and gives its file li
    - related data
 3. Findings. Write each finding as a draft comment line that follows "Writing" and is ready to paste. Draft lines group the table rows that are clearly one feature.
    - A list of names under one heading is not a draft line. Split it into one line per change.
-   - A name that passed the check gets its own line, even when strings are the only evidence.
+   - A name that passed the check gets its own line, even when strings are the only evidence. A name that only implements a feature that another line reports, such as a format string, an include path, a helper class or a typo in UI code, is evidence under that line.
    - The notes never say whether a finding is worth the comment.
    - Under each line, indent the evidence lines. For every "new", "removed", "also in <game>" and "only in this game", add the check command and its output. Add what the change means for players or dataminers.
 
@@ -97,6 +97,6 @@ Strings files are partly binary:
 ## Repo notes
 
 - **Tracked content is different in each repo.** Some repos have decompiled game content. Others have mostly asset lists, strings, protobufs and DumpSource2. There, gameplay data shows only as CRC changes, and schema fields are the main signal.
-- **DumpSource2 noise:** `.stringsignore`. In schemas: default values, type renames with no other change, and comments. New description text and conditions (such as the mods that a field applies to) are not noise.
+- **Schema noise:** default values, type renames with no other change, and comments. New description text and conditions (such as the mods that a field applies to) are not noise.
 - **Shaders:** analyse the engine shaders under `game/core/`. Skip the game's own shaders.
 - **Third-party libraries:** a new entry in license notices, or a new third-party binary, means a new library. That is worth a line.
